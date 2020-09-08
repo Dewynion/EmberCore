@@ -1,0 +1,2 @@
+# enables the use of debug commands.
+debug: false
