@@ -7,6 +7,10 @@ load: STARTUP
 description: Library containing methods to assist with reflection, physics, and geometry.
 commands:
   shape:
-    description: Debug command. Generates a particle shape where the player is looking.
+    description: Testing command. Generates a particle shape where the player is looking.
+    usage: /<command>
+    default: true
+  menutest:
+    description: Testing command. Opens a multi-page menu with random items in it.
     usage: /<command>
     default: true
