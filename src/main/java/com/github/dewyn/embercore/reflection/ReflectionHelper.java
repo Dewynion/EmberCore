@@ -1,6 +1,5 @@
 package com.github.dewyn.embercore.reflection;
 
-import com.github.dewyn.embercore.CoreLoadPriority;
 import com.github.dewyn.embercore.EmberCore;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -9,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -19,7 +17,7 @@ public class ReflectionHelper {
     public final static String CLASS_EXTENSION = ".class";
     public final static String PLUGIN_FILE_METHOD = "getFile";
     private static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
-    private static HashMap<JavaPlugin, Set<Singleton>> singletons;
+    private static HashMap<JavaPlugin, Set<Object>> singletons;
     static {
         assemblies = new HashMap<>();
         singletons = new HashMap<>();
@@ -77,8 +75,8 @@ public class ReflectionHelper {
         return assemblies.get(plugin);
     }
 
-    public static Set<Singleton> loadSingletons(JavaPlugin plugin) {
-        return loadSingletons(plugin, false);
+    public static Set<Object> getSingletons(JavaPlugin plugin) {
+        return getSingletons(plugin, false);
     }
 
     /**
@@ -95,10 +93,10 @@ public class ReflectionHelper {
      *               instantiated.
      * @return
      */
-    public static Set<Singleton> loadSingletons(JavaPlugin plugin, boolean reload) {
+    public static Set<Object> getSingletons(JavaPlugin plugin, boolean reload) {
         try {
             EmberCore core = EmberCore.getInstance();
-            Set<Singleton> pluginSingletons;
+            Set<Object> pluginSingletons;
             if (!singletons.containsKey(plugin))
                 pluginSingletons = new HashSet<>();
             else {
@@ -113,12 +111,11 @@ public class ReflectionHelper {
                     .forEach(clz -> {
                         try {
                             // don't duplicate if this singleton has been instantiated already
-                            // also don't bother checking unless the singleton set is being reloaded
-                            if (reload && !pluginSingletons.stream().anyMatch(obj -> obj.getClass().equals(clz))) {
+                            if (!pluginSingletons.stream().anyMatch(obj -> obj.getClass().equals(clz))) {
                                 Object inst = clz.getConstructor().newInstance();
                                 core.getLogger().info("  Loaded singleton " + clz.getSimpleName() + " with priority " +
                                         clz.getAnnotation(Singleton.class).priority());
-                                pluginSingletons.add((Singleton) inst);
+                                pluginSingletons.add(inst);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

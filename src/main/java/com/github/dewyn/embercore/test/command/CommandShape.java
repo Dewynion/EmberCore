@@ -1,4 +1,4 @@
-package com.github.dewyn.embercore.command;
+package com.github.dewyn.embercore.test.command;
 
 import com.github.dewyn.embercore.EmberCore;
 import com.github.dewyn.embercore.util.GeometryUtil;
@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
