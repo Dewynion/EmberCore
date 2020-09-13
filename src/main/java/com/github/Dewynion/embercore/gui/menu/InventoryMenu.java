@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.gui.menu;
+package com.github.Dewynion.embercore.gui.menu;
 
-import com.github.dewyn.embercore.EmberCore;
-import com.github.dewyn.embercore.util.InventoryUtil;
+import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.util.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -12,7 +12,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.UUID;
 

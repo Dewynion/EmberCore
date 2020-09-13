@@ -1,4 +1,4 @@
-package com.github.dewyn.embercore.util;
+package com.github.Dewynion.embercore.util;
 
 public class InventoryUtil {
     public static final int INVENTORY_COLUMNS = 9;

@@ -1,4 +1,4 @@
-package com.github.dewyn.embercore;
+package com.github.Dewynion.embercore;
 
 public class CoreLoadPriority {
     public static final int MENU_MANAGER_PRIORITY = 0;

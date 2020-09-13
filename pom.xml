@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.dewyn</groupId>
+    <groupId>com.github.Dewynion</groupId>
     <artifactId>EmberCore</artifactId>
     <version>0.5.0</version>
 
@@ -35,9 +35,6 @@
         <resources>
             <resource>
                 <directory>./src/main/java</directory>
-                <excludes>
-                    <exclude>com/github/dewyn/test/*</exclude>
-                </excludes>
                 <includes>
                     <include>*.*</include>
                 </includes>
