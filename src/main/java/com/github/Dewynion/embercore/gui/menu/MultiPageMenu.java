@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.gui.menu;
+package com.github.Dewynion.embercore.gui.menu;
 
-import com.github.dewyn.embercore.EmberCore;
-import com.github.dewyn.embercore.util.InventoryUtil;
+import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.util.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;

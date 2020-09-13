@@ -1,4 +1,4 @@
-package com.github.dewyn.embercore.reflection;
+package com.github.Dewynion.embercore.reflection;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

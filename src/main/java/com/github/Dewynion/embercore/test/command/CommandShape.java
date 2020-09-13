@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.test.command;
+package com.github.Dewynion.embercore.test.command;
 
-import com.github.dewyn.embercore.EmberCore;
-import com.github.dewyn.embercore.util.GeometryUtil;
+import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.util.GeometryUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.command.Command;

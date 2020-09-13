@@ -1,6 +1,6 @@
-package com.github.dewyn.embercore.util;
+package com.github.Dewynion.embercore.util;
 
-import com.github.dewyn.embercore.EmberCore;
+import com.github.Dewynion.embercore.EmberCore;
 
 public class MathUtil {
     public static <T extends Number & Comparable> T clamp(T val, T min, T max) {

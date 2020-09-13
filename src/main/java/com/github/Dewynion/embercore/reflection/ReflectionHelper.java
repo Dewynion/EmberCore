@@ -1,6 +1,6 @@
-package com.github.dewyn.embercore.reflection;
+package com.github.Dewynion.embercore.reflection;
 
-import com.github.dewyn.embercore.EmberCore;
+import com.github.Dewynion.embercore.EmberCore;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;

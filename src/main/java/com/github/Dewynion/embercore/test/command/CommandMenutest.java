@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.test.command;
+package com.github.Dewynion.embercore.test.command;
 
-import com.github.dewyn.embercore.test.gui.RandomItemPagedMenu;
-import com.github.dewyn.embercore.gui.menu.MenuManager;
+import com.github.Dewynion.embercore.test.gui.RandomItemPagedMenu;
+import com.github.Dewynion.embercore.gui.menu.MenuManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

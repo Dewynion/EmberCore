@@ -1,4 +1,4 @@
-package com.github.dewyn.embercore.config;
+package com.github.Dewynion.embercore.config;
 
 public enum ConfigConstants {
     DEBUG("debug");

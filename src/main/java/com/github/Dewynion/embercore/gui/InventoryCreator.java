@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.gui;
+package com.github.Dewynion.embercore.gui;
 
-import com.github.dewyn.embercore.EmberCore;
-import com.github.dewyn.embercore.util.InventoryUtil;
+import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.util.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;

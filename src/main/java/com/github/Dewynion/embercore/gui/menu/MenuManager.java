@@ -1,7 +1,7 @@
-package com.github.dewyn.embercore.gui.menu;
+package com.github.Dewynion.embercore.gui.menu;
 
-import com.github.dewyn.embercore.CoreLoadPriority;
-import com.github.dewyn.embercore.reflection.Singleton;
+import com.github.Dewynion.embercore.CoreLoadPriority;
+import com.github.Dewynion.embercore.reflection.Singleton;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;

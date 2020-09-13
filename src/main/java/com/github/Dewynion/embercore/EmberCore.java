@@ -1,8 +1,8 @@
-package com.github.dewyn.embercore;
+package com.github.Dewynion.embercore;
 
-import com.github.dewyn.embercore.test.command.CommandMenutest;
-import com.github.dewyn.embercore.test.command.CommandShape;
-import com.github.dewyn.embercore.reflection.ReflectionHelper;
+import com.github.Dewynion.embercore.test.command.CommandMenutest;
+import com.github.Dewynion.embercore.test.command.CommandShape;
+import com.github.Dewynion.embercore.reflection.ReflectionHelper;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
