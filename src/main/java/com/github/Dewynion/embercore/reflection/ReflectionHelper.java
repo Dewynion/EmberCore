@@ -130,12 +130,14 @@ public class ReflectionHelper {
 
     /**
      * Calls {@link Bukkit#getServer()}'s {@link org.bukkit.plugin.PluginManager#registerEvents(Listener, Plugin)}
-     * on all {@link Singleton}s that implement {@link Listener}.
+     * on all {@link Singleton}s that implement {@link Listener}. Singletons are retrieved via
+     * {@link #getSingletons(JavaPlugin)}, so this method can be called by itself on plugin enable to
+     * load the plugin's assembly, instantiate all singletons, and register Listeners.
      * @param plugin - The plugin to register events for.
      */
     public static void registerEvents(JavaPlugin plugin) {
         EmberCore core = EmberCore.getInstance();
-        singletons.get(plugin).forEach(inst -> {
+        getSingletons(plugin).forEach(inst -> {
             if (inst instanceof Listener) {
                 Bukkit.getServer().getPluginManager().registerEvents((Listener) inst, plugin);
                 core.getLogger().info("    Registered listener for " + inst.getClass().getSimpleName() + ".");
