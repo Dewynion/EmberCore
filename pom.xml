@@ -57,4 +57,11 @@
             </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Dewynion Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/Dewynion/EmberCore</url>
+        </repository>
+    </distributionManagement>
 </project>
