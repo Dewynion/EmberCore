@@ -2,6 +2,7 @@ package com.github.Dewynion.embercore;
 
 import com.github.Dewynion.embercore.config.ConfigReader;
 import com.github.Dewynion.embercore.gui.menu.MenuManager;
+import com.github.Dewynion.embercore.physics.ProjectileRegistry;
 import com.github.Dewynion.embercore.test.command.CommandMenutest;
 import com.github.Dewynion.embercore.test.command.CommandShape;
 import com.github.Dewynion.embercore.reflection.ReflectionHelper;
@@ -13,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EmberCore extends JavaPlugin {
+    public static final String CONFIG_KEY = "config.yml";
+
     private static EmberCore instance;
 
     public static EmberCore getInstance() {
@@ -25,6 +28,10 @@ public class EmberCore extends JavaPlugin {
 
     public static ConfigReader getConfigReader() {
         return ConfigReader.getInstance();
+    }
+
+    public static ProjectileRegistry getProjectileRegistry() {
+        return ProjectileRegistry.getInstance();
     }
 
     /**
