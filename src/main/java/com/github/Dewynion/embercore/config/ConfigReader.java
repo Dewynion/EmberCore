@@ -104,9 +104,54 @@ public class ConfigReader {
      * Attempts to return an object with the same type as the provided default value
      * from the desired config location.
      */
-    public <T> T get(JavaPlugin plugin, String configKey, String path, T defaultValue) {
+    public Object get(JavaPlugin plugin, String configKey, String path, Object defaultValue) {
         try {
-            return (T) pluginConfigs.get(plugin).get(configKey).get(path);
+            return pluginConfigs.get(plugin).get(configKey).getString(path);
+        } catch (Exception e) {
+            loadErrMsg(e, plugin, configKey, path, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public String getString(JavaPlugin plugin, String configKey, String path, String defaultValue) {
+        try {
+            return get(plugin, configKey, path, defaultValue).toString();
+        } catch (Exception e) {
+            loadErrMsg(e, plugin, configKey, path, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public int getInt(JavaPlugin plugin, String configKey, String path, int defaultValue) {
+        try {
+            return (int) get(plugin, configKey, path, defaultValue);
+        } catch (Exception e) {
+            loadErrMsg(e, plugin, configKey, path, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public double getDouble(JavaPlugin plugin, String configKey, String path, double defaultValue) {
+        try {
+            return (double) get(plugin, configKey, path, defaultValue);
+        } catch (Exception e) {
+            loadErrMsg(e, plugin, configKey, path, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public float getFloat(JavaPlugin plugin, String configKey, String path, float defaultValue) {
+        try {
+            return (float) get(plugin, configKey, path, defaultValue);
+        } catch (Exception e) {
+            loadErrMsg(e, plugin, configKey, path, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    public boolean getBoolean(JavaPlugin plugin, String configKey, String path, boolean defaultValue) {
+        try {
+            return (boolean) get(plugin, configKey, path, defaultValue);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
             return defaultValue;
