@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -18,6 +19,7 @@ public class ReflectionHelper {
     public final static String PLUGIN_FILE_METHOD = "getFile";
     private static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
     private static HashMap<JavaPlugin, Set<Object>> singletons;
+
     static {
         assemblies = new HashMap<>();
         singletons = new HashMap<>();
@@ -75,11 +77,12 @@ public class ReflectionHelper {
     /**
      * Retrieves the assembly for the given {@link JavaPlugin} via {@link #getAllClasses(JavaPlugin)},
      * then instantiates any classes tagged with it.
-     *
+     * <p>
      * Classes with a lower {@link Singleton#priority()} are
      * loaded first - priority 1 is loaded before priority 2, etc. This allows developers to ensure that one class
      * (e.g. a class for managing custom entities) consistently loads before another (e.g. a listener that creates
      * custom entities in place of vanilla spawns).
+     *
      * @param plugin - The plugin to load for.
      * @param reload - If false, will return the precached list of Singletons or load them if they have not
      *               yet been cached; if true, will always attempt to load. Will not instantiate any classes already
@@ -126,6 +129,7 @@ public class ReflectionHelper {
      * on all {@link Singleton}s that implement {@link Listener}. Singletons are retrieved via
      * {@link #getSingletons(JavaPlugin)}, so this method can be called by itself on plugin enable to
      * load the plugin's assembly, instantiate all singletons, and register Listeners.
+     *
      * @param plugin - The plugin to register events for.
      */
     public static void registerEvents(JavaPlugin plugin) {
@@ -138,6 +142,9 @@ public class ReflectionHelper {
         });
     }
 
+    /**
+     * Reflectively retrieves the plugin's .jar file from the plugins folder.
+     */
     public static File getPluginFile(JavaPlugin plugin) {
         // to be blunt there's no way this should ever fail
         try {
@@ -148,5 +155,33 @@ public class ReflectionHelper {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Calls all methods tagged with {@link PostSetup} in {@link Singleton}s
+     * for the given plugin.
+     */
+    public static void postSetup(JavaPlugin plugin) {
+        Map<Method, Object> postSetupMethods = new HashMap<>();
+        getSingletons(plugin).forEach(inst -> {
+            Method[] methodArr = inst.getClass().getMethods();
+            for (Method method : methodArr) {
+                if (method.isAnnotationPresent(PostSetup.class) &&
+                        method.getParameters().length == 0) {
+                    postSetupMethods.put(method, inst);
+                }
+            }
+        });
+        EmberCore.log(Level.INFO, "Calling post-setup for " + plugin.getName() + ".");
+        postSetupMethods.keySet().stream().sorted(Comparator.comparingInt(m
+                -> m.getAnnotation(PostSetup.class).priority())).forEach(m
+                -> {
+            try {
+                m.invoke(postSetupMethods.get(m));
+            } catch (Exception e) {
+                EmberCore.log(Level.SEVERE, "Something went wrong during post-setup:");
+                e.printStackTrace();
+            }
+        });
     }
 }

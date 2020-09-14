@@ -58,9 +58,10 @@ public class ConfigReader {
     /**
      * Register a new config for the given plugin under the given key using the
      * specified file.
-     * @param plugin The plugin to register the config for.
-     * @param configKey The key to register the config under.
-     *                  Typically the config's name, like "player-data".
+     *
+     * @param plugin     The plugin to register the config for.
+     * @param configKey  The key to register the config under.
+     *                   Typically the config's name, like "player-data".
      * @param configFile The file to generate a {@link FileConfiguration} from.
      */
     public void registerConfig(JavaPlugin plugin, String configKey, File configFile) {
@@ -85,14 +86,13 @@ public class ConfigReader {
     public void registerConfig(JavaPlugin plugin, String configKey, FileConfiguration config) {
         pluginConfigs.get(plugin).put(configKey, config);
         if (configKey.contentEquals(DEFAULT_CONFIG_KEY))
-            EmberCore.log(Level.WARNING, plugin.getName() + " registered a new config " +
-                    "over the default config.");
+            EmberCore.log(Level.INFO, plugin.getName() + " registered a new default config.");
     }
 
     /**
-     * @param plugin The plugin to fetch the section for.
+     * @param plugin    The plugin to fetch the section for.
      * @param configKey The key of the config containing the desired section.
-     * @param path A string indicating the section's path in config.
+     * @param path      A string indicating the section's path in config.
      * @return A {@link ConfigurationSection} at path from the requested config.
      */
     public ConfigurationSection getSection(JavaPlugin plugin, String configKey, String path) {
@@ -141,7 +141,8 @@ public class ConfigReader {
     private static void loadErrMsg(Exception e, String cfgName, String path, Object defaultValue) {
 
         EmberCore.log(Level.WARNING, "Exception met when fetching " + path
-                + " from config " + cfgName + ": " + e.getLocalizedMessage());
+                + " from config " + cfgName + ": ");
+        e.printStackTrace();
         EmberCore.log(Level.INFO, "Using default value " + defaultValue + ".");
     }
 }
