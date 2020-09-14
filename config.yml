@@ -1,2 +1,2 @@
-# enables the use of debug commands.
-debug: false
+# enables the use of testing commands
+testing: false
