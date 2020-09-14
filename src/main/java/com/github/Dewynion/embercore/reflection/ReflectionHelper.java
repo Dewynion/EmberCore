@@ -32,14 +32,7 @@ public class ReflectionHelper {
             throws IOException {
         if (reload || !assemblies.containsKey(plugin)) {
             EmberCore core = EmberCore.getInstance();
-            File pluginFile = null;
-            try {
-                Method fileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-                fileMethod.setAccessible(true);
-                pluginFile = (File) fileMethod.invoke(plugin);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            File pluginFile = getPluginFile(plugin);
             if (pluginFile == null)
                 throw new IOException("EmberCore::ReflectionHelper: unable to load plugin assembly for " +
                         plugin.getName() + ".");
@@ -143,5 +136,17 @@ public class ReflectionHelper {
                 core.getLogger().info("    Registered listener for " + inst.getClass().getSimpleName() + ".");
             }
         });
+    }
+
+    public static File getPluginFile(JavaPlugin plugin) {
+        // to be blunt there's no way this should ever fail
+        try {
+            Method fileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
+            fileMethod.setAccessible(true);
+            return (File) fileMethod.invoke(plugin);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 }
