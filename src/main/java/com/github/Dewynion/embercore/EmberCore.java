@@ -44,6 +44,7 @@ public class EmberCore extends JavaPlugin {
 
     public void setup(JavaPlugin plugin) {
         ReflectionHelper.registerEvents(plugin);
+        getConfigReader().registerPlugin(plugin);
         ReflectionHelper.postSetup(plugin);
     }
 
