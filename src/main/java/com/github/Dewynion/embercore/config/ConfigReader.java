@@ -38,6 +38,7 @@ public class ConfigReader {
      * then adds the default config from config.yml.
      */
     public void registerPlugin(JavaPlugin plugin) {
+        EmberCore.log(Level.INFO, "Registering config for " + plugin.getName() + ".");
         pluginConfigs.put(plugin, new HashMap<>());
         if (!new File(plugin.getDataFolder(), DEFAULT_CONFIG_FILENAME).exists())
             plugin.saveDefaultConfig();
@@ -105,7 +106,7 @@ public class ConfigReader {
      */
     public <T> T get(JavaPlugin plugin, String configKey, String path, T defaultValue) {
         try {
-            return (T) pluginConfigs.get(plugin).get(path);
+            return (T) pluginConfigs.get(plugin).get(configKey).get(path);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
             return defaultValue;

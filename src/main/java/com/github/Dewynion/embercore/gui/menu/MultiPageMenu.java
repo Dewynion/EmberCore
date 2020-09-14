@@ -5,6 +5,7 @@ import com.github.Dewynion.embercore.util.InventoryUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,8 +24,8 @@ public abstract class MultiPageMenu extends InventoryMenu {
             InventoryUtil.LAST_COL_INDEX - 3);
     public static final int PREV_INDEX = InventoryUtil.indexOfSlot(InventoryUtil.LAST_ROW_INDEX,
             3);
-    public static final ItemStack DEFAULT_NEXT = new Wool(DyeColor.GREEN).toItemStack(1);
-    public static final ItemStack DEFAULT_PREVIOUS = new Wool(DyeColor.RED).toItemStack(1);
+    public static final ItemStack DEFAULT_NEXT = new ItemStack(Material.GREEN_WOOL);
+    public static final ItemStack DEFAULT_PREVIOUS = new ItemStack(Material.RED_WOOL);
     static {
         ItemMeta nextMeta = DEFAULT_NEXT.getItemMeta();
         nextMeta.setDisplayName(ChatColor.GREEN + "Next Page");
