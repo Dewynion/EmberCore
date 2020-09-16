@@ -106,7 +106,17 @@ public class ConfigReader {
      */
     public Object get(JavaPlugin plugin, String configKey, String path, Object defaultValue) {
         try {
-            return pluginConfigs.get(plugin).get(configKey).getString(path);
+            if (!pluginConfigs.containsKey(plugin)) {
+                EmberCore.log(Level.WARNING,
+                        "Plugin " + plugin.getName() + " isn't registered with ConfigReader.");
+                return defaultValue;
+            } else if (!pluginConfigs.get(plugin).containsKey(configKey)) {
+                EmberCore.log(Level.WARNING,
+                        "Plugin " + plugin.getName() + " doesn't have a key '" +
+                        configKey + "'.");
+                return defaultValue;
+            }
+            return pluginConfigs.get(plugin).get(configKey).get(path);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
             return defaultValue;

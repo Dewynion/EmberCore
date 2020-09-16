@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EmberCore extends JavaPlugin {
-    public static final String CONFIG_KEY = "config.yml";
+    public static final String CONFIG_KEY = "config";
 
     private static EmberCore instance;
 
