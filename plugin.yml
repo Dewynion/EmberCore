@@ -14,3 +14,7 @@ commands:
     description: Testing command. Opens a multi-page menu with random items in it.
     usage: /<command>
     default: true
+  nmstest:
+    description: Testing command. Logs some NMS-related stuff to console. Most people won't need this at all.
+    usage: /<command>
+    default: true

@@ -4,14 +4,12 @@ import com.github.Dewynion.embercore.config.ConfigReader;
 import com.github.Dewynion.embercore.gui.menu.MenuManager;
 import com.github.Dewynion.embercore.physics.ProjectileRegistry;
 import com.github.Dewynion.embercore.test.command.CommandMenutest;
+import com.github.Dewynion.embercore.test.command.CommandNMSTest;
 import com.github.Dewynion.embercore.test.command.CommandShape;
 import com.github.Dewynion.embercore.reflection.ReflectionHelper;
-import io.netty.handler.logging.LogLevel;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class EmberCore extends JavaPlugin {
     public static final String CONFIG_KEY = "config";
@@ -58,5 +56,6 @@ public class EmberCore extends JavaPlugin {
     private void registerCommands() {
         getCommand("shape").setExecutor(new CommandShape());
         getCommand("menutest").setExecutor(new CommandMenutest());
+        getCommand("nmstest").setExecutor(new CommandNMSTest());
     }
 }
