@@ -85,6 +85,10 @@ public abstract class InventoryMenu {
      **/
     protected abstract void modifyInstance(Player player);
 
+    /**
+     * Returns true if the provided entity is a player and if the specified inventory is that of the player's
+     * menu instance.
+     */
     protected boolean isMenu(HumanEntity ent, Inventory inventory) {
         if (!(ent instanceof Player))
             return false;
@@ -92,8 +96,13 @@ public abstract class InventoryMenu {
         return hasInstanceOpen(p) && getInstance(p).getMenuInventory().equals(inventory);
     }
 
+    /**
+     * Class containing information for each instance of a menu opened by a player.
+     */
     public class MenuInstance {
+        /** The {@link org.bukkit.entity.Player} that opened this menu. */
         protected final Player accessor;
+        /** The {@link com.github.Dewynion.embercore.gui.menu.InventoryMenu} that this instance is based off of. */
         protected final InventoryMenu parent;
         protected String title;
         protected Inventory menuInventory;
@@ -105,8 +114,12 @@ public abstract class InventoryMenu {
             setupInventory();
         }
 
+        /**
+         * Creates an {@link Inventory} owned by the {@link MenuInstance#accessor} of this menu instance
+         * with {@link MenuInstance#parent#menuContents} as its contents.
+         */
         protected void setupInventory() {
-            menuInventory = Bukkit.createInventory(accessor, menuContents.length, title);
+            menuInventory = Bukkit.createInventory(accessor, parent.menuContents.length, title);
             menuInventory.setContents(menuContents);
         }
 
