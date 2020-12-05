@@ -1,1 +1,5 @@
+# Are we running in debug mode? Setting this to true will enable testing features and waste RAM storing things
+# like RandomItemPagedMenu.
 debug: false
+# How many projectiles
+max-projectiles: 1000
