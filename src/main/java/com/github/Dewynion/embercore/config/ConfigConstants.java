@@ -1,6 +1,7 @@
 package com.github.Dewynion.embercore.config;
 
 public enum ConfigConstants {
+    DEBUG_MODE("debug", false),
     MAX_PROJECTILES("max-projectiles", 1000);
 
     String path;

@@ -113,14 +113,13 @@ public class ConfigReader {
             } else if (!pluginConfigs.get(plugin).containsKey(configKey)) {
                 EmberCore.log(Level.WARNING,
                         "Plugin " + plugin.getName() + " doesn't have a key '" +
-                        configKey + "'.");
+                                configKey + "'.");
                 return defaultValue;
             }
-            return pluginConfigs.get(plugin).get(configKey).get(path);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
-            return defaultValue;
         }
+        return defaultValue;
     }
 
     public String getString(JavaPlugin plugin, String configKey, String path, String defaultValue) {
