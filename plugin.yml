@@ -1,10 +1,10 @@
 main: com.github.Dewynion.embercore.EmberCore
 name: EmberCore
 author: dewynion
-version: 0.6.3
+version: 0.6.4
 api-version: 1.16
 load: STARTUP
-description: Library containing methods to assist with reflection, physics, and geometry.
+description: Library containing methods to assist with reflection, physics, geometry, and more.
 commands:
   shape:
     description: Testing command. Generates a particle shape where the player is looking.

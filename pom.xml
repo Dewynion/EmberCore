@@ -6,7 +6,7 @@
 
     <groupId>com.github.Dewynion</groupId>
     <artifactId>EmberCore</artifactId>
-    <version>0.6.3</version>
+    <version>0.6.4</version>
 
     <repositories>
         <repository>
