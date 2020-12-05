@@ -10,18 +10,18 @@ import org.bukkit.entity.Player;
 
 import java.util.logging.Level;
 
+/**
+ * Look, I'll be honest, I've just been changing the code in this class every time I want to test
+ * something with NMS and using the same command to test it.
+ */
 public class CommandNMSTest implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player))
             return false;
         Player p = (Player) sender;
-        EmberCore.log(Level.INFO, p.getClass().getName());
-        WCraftPlayer wcp = new WCraftPlayer(p);
-        EmberCore.log(Level.INFO, wcp.getObject().getClass().getName());
-        EmberCore.log(Level.INFO, wcp.getHandle().getClass().getName());
         WEntityPlayer wep = new WEntityPlayer(p);
-        EmberCore.log(Level.INFO, wep.getObject().getClass().getName());
+        p.sendMessage(String.format("Your ping: %s", wep.getPing()));
         return true;
     }
 }
