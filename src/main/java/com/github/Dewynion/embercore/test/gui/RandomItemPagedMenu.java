@@ -15,7 +15,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
-@Singleton(priority = CoreLoadPriority.MENU_PRIORITY)
 public class RandomItemPagedMenu extends MultiPageMenu {
     /**
      *  See below - maps player UUIDs to runnables that run while the players

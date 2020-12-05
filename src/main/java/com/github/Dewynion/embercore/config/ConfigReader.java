@@ -106,7 +106,7 @@ public class ConfigReader {
      */
     public Object get(JavaPlugin plugin, String configKey, String path, Object defaultValue) {
         try {
-            return pluginConfigs.get(plugin).get(configKey).getString(path);
+            return pluginConfigs.get(plugin).get(configKey).get(path);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
             return defaultValue;
