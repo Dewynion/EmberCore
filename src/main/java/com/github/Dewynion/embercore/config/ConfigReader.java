@@ -116,6 +116,7 @@ public class ConfigReader {
                                 configKey + "'.");
                 return defaultValue;
             }
+            return pluginConfigs.get(plugin).get(configKey).get(path);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
         }
