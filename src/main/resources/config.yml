@@ -1,0 +1,2 @@
+# How many projectiles can the server support at one time? This is shared across all plugins.
+max-projectiles: 1000

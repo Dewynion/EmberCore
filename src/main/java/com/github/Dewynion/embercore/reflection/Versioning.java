@@ -1,7 +1,6 @@
 package com.github.Dewynion.embercore.reflection;
 
 import com.github.Dewynion.embercore.EmberCore;
-import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.Bukkit;
 
 import java.util.logging.Level;

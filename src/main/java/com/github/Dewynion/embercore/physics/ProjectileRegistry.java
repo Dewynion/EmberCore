@@ -21,7 +21,7 @@ public class ProjectileRegistry {
 
     @PostSetup(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
     public void config() {
-        maxProjectiles = EmberCore.getConfigReader().getInt(EmberCore.getInstance(),
+        maxProjectiles = EmberCore.getConfigManager().getInt(EmberCore.getInstance(),
                 EmberCore.CONFIG_KEY,
                 ConfigConstants.MAX_PROJECTILES.getPath(),
                 (int) ConfigConstants.MAX_PROJECTILES.getDefaultValue());

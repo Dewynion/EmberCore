@@ -1,18 +1,14 @@
-package com.github.Dewynion.embercore.test.command;
+package com.github.Dewynion.embercoretest.command;
 
-import com.github.Dewynion.embercore.EmberCore;
-import com.github.Dewynion.embercore.reflection.wrapper.entity.WCraftPlayer;
 import com.github.Dewynion.embercore.reflection.wrapper.entity.WEntityPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.logging.Level;
-
 /**
- * Look, I'll be honest, I've just been changing the code in this class every time I want to test
- * something with NMS and using the same command to test it.
+ * Look, I'll be honest, I've just been changing the code in this class every time I want to com.github.Dewynion.embercore.test
+ * something with NMS and using the same command to com.github.Dewynion.embercore.test it.
  */
 public class CommandNMSTest implements CommandExecutor {
     @Override

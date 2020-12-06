@@ -1,4 +1,4 @@
-package com.github.Dewynion.embercore.test.command;
+package com.github.Dewynion.embercoretest.command;
 
 import com.github.Dewynion.embercore.EmberCore;
 import com.github.Dewynion.embercore.util.GeometryUtil;

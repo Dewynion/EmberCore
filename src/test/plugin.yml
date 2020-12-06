@@ -1,10 +1,10 @@
-main: com.github.Dewynion.embercore.EmberCore
-name: EmberCore
+depend: [EmberCore]
+main: com.github.Dewynion.embercoretest.EmberCoreTest
+name: EmberCoreTest
 author: dewynion
-version: 0.7.0
+version: 1.0.0
 api-version: 1.16
-load: STARTUP
-description: Library containing methods to assist with reflection, physics, geometry, and more.
+description: Plugin for testing EmberCore.
 commands:
   shape:
     description: Testing command. Generates a particle shape where the player is looking.

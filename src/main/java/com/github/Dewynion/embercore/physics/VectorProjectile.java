@@ -3,7 +3,6 @@ package com.github.Dewynion.embercore.physics;
 import com.github.Dewynion.embercore.EmberCore;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;

@@ -1,9 +1,7 @@
-package com.github.Dewynion.embercore.test.gui;
+package com.github.Dewynion.embercoretest.gui;
 
-import com.github.Dewynion.embercore.CoreLoadPriority;
 import com.github.Dewynion.embercore.EmberCore;
 import com.github.Dewynion.embercore.gui.menu.MultiPageMenu;
-import com.github.Dewynion.embercore.reflection.Singleton;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
