@@ -92,13 +92,25 @@ public class ShapeUtil {
     }
 
     /**
-     * Generates a sphere around the provided location with the given radius.
+     * Generates a Fibonacci sphere around the provided location with the given radius.
      *
      * @param points Number of points in the sphere.
      */
     public static List<Location> sphere(Location center, double radius, int points) {
         List<Location> locations = new ArrayList<>();
-
+        // phi = the golden angle, in radians
+        // yes i had to look this up
+        double phi = Math.PI * (3.0 - Math.sqrt(5.0));
+        for (int i = 0; i < points; i++) {
+            // constrain y to [-1.0, 1.0]
+            double y = 1.0 - ((double) i / ((double) points - 1.0)) * 2.0;
+            // angle at i
+            double theta = phi * i;
+            double r = radius * Math.sqrt(1.0 - y * y);
+            double x = r * Math.cos(theta);
+            double z = r * Math.sin(theta);
+            locations.add(center.clone().add(x, y, z));
+        }
         return locations;
     }
 }
