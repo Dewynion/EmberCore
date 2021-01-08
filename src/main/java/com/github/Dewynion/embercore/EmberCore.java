@@ -37,15 +37,15 @@ public class EmberCore extends JavaPlugin {
         instance.getLogger().log(level, message);
     }
 
-    public static void setup(JavaPlugin plugin) {
-        ReflectionHelper.registerEvents(plugin);
-        getConfigManager().registerPlugin(plugin);
-        ReflectionHelper.postSetup(plugin);
-    }
-
     public void onEnable() {
         instance = this;
         ReflectionHelper.registerEvents(this);
         setup(this);
+    }
+
+    public void setup(JavaPlugin plugin) {
+        ReflectionHelper.registerEvents(plugin);
+        getConfigManager().registerPlugin(plugin);
+        ReflectionHelper.postSetup(plugin);
     }
 }
