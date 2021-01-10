@@ -53,7 +53,7 @@ public class ConfigManager {
                     "ConfigReader::registerPlugin(JavaPlugin).");
             return null;
         }
-        return pluginConfigs.get(plugin).get(DEFAULT_CONFIG_KEY);
+        return pluginConfigs.get(plugin).get(DEFAULT_CONFIG_KEY).config;
     }
 
     public FileConfiguration getConfigFor(JavaPlugin plugin, String configKey) throws
