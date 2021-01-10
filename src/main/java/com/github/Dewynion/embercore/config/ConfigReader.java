@@ -66,6 +66,17 @@ public class ConfigReader {
         return pluginConfigs.get(plugin).get(configKey);
     }
 
+    public void saveConfig(JavaPlugin plugin, String configKey) {
+        if (!pluginConfigs.containsKey(plugin)) {
+            EmberCore.log(Level.WARNING, "Configs not found for plugin "
+                    + plugin.getName() + ". Please register it using " +
+                    "ConfigReader::registerPlugin(JavaPlugin).");
+            return;
+        } else {
+            pluginConfigs.get(plugin).get(configKey);
+        }
+    }
+
     /**
      * Register a new config for the given plugin under the given key using the
      * specified file.
@@ -188,6 +199,15 @@ public class ConfigReader {
         } catch (Exception e) {
             loadErrMsg(e, section.getName(), path, defaultValue);
             return defaultValue;
+        }
+    }
+
+    public static void set(ConfigurationSection section, String path, Object value) {
+        try {
+            section.set(path, value);
+        } catch (Exception e) {
+            EmberCore.log(Level.WARNING, "Unable to set value " + value.toString()
+                    + " for path " + path + ".");
         }
     }
 
