@@ -45,6 +45,16 @@ public class ConfigReader {
         registerConfig(plugin, DEFAULT_CONFIG_KEY, plugin.getConfig());
     }
 
+    public FileConfiguration getDefaultConfig(JavaPlugin plugin) throws NullPointerException {
+        if (!pluginConfigs.containsKey(plugin)) {
+            EmberCore.log(Level.WARNING, "Configs not found for plugin "
+                    + plugin.getName() + ". Please register it using " +
+                    "ConfigReader::registerPlugin(JavaPlugin).");
+            return null;
+        }
+        return pluginConfigs.get(plugin).get(DEFAULT_CONFIG_KEY);
+    }
+
     public FileConfiguration getConfigFor(JavaPlugin plugin, String configKey) throws
             NullPointerException {
         if (!pluginConfigs.containsKey(plugin)) {
@@ -65,11 +75,21 @@ public class ConfigReader {
      *                   Typically the config's name, like "player-data".
      * @param configFile The file to generate a {@link FileConfiguration} from.
      */
-    public void registerConfig(JavaPlugin plugin, String configKey, File configFile) {
+    public void registerConfig(JavaPlugin plugin, String configKey, File configFile, boolean createFile) {
         if (!configFile.exists()) {
-            EmberCore.log(Level.WARNING, plugin.getName() + " attempted to register " +
-                    "a config from nonexistent file " + configFile.getPath());
-            return;
+            if (!createFile) {
+                EmberCore.log(Level.WARNING, plugin.getName() + " attempted to register "
+                        + "a config from nonexistent file " + configFile.getPath()
+                        + " without allowing new file creation.");
+                return;
+            }
+            try {
+                configFile.createNewFile();
+            } catch (IOException ex) {
+                EmberCore.log(Level.SEVERE, "I/O error: Unable to create config file "
+                        + configFile.getPath() + " for plugin " + plugin.getName() + ".");
+                return;
+            }
         }
         FileConfiguration fc = new YamlConfiguration();
         try {
@@ -81,7 +101,7 @@ public class ConfigReader {
     }
 
     /**
-     * Similar to {@link #registerConfig(JavaPlugin, String, File)}, but accepts an
+     * Similar to {@link #registerConfig(JavaPlugin, String, File, boolean)}, but accepts an
      * existing {@link FileConfiguration} instead.
      */
     public void registerConfig(JavaPlugin plugin, String configKey, FileConfiguration config) {
