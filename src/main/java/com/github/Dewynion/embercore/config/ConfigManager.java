@@ -72,10 +72,20 @@ public class ConfigManager {
             EmberCore.log(Level.WARNING, "Configs not found for plugin "
                     + plugin.getName() + ". Please register it using " +
                     "ConfigReader::registerPlugin(JavaPlugin).");
-            return;
         } else {
-            pluginConfigs.get(plugin).get(configKey);
+            FileConfigPair pair = pluginConfigs.get(plugin).get(configKey);
+            try {
+                pair.config.save(pair.file);
+            } catch (IOException ex) {
+                EmberCore.log(Level.WARNING,
+                        String.format("Unable to save config '%s' for plugin %s. Couldn't access config file %s.",
+                                configKey, plugin.getName(), pair.file));
+            }
         }
+    }
+
+    public void saveDefaultConfig(JavaPlugin plugin) {
+        saveConfig(plugin, DEFAULT_CONFIG_KEY);
     }
 
     /**
@@ -235,12 +245,17 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * Static set that only requires a configuration section. Not really necessary but does log
+     * errors so that's cool.
+     */
     public static void set(ConfigurationSection section, String path, Object value) {
         try {
             section.set(path, value);
         } catch (Exception e) {
             EmberCore.log(Level.WARNING, "Unable to set value " + value.toString()
                     + " for path " + path + ".");
+            e.printStackTrace();
         }
     }
 
@@ -250,13 +265,7 @@ public class ConfigManager {
     public void set(JavaPlugin plugin, String configKey, String path, Object value) {
         FileConfigPair fcp = pluginConfigs.get(plugin).get(configKey);
         fcp.config.set(path, value);
-        try {
-            fcp.config.save(fcp.file);
-        } catch (IOException ex) {
-            EmberCore.log(Level.WARNING,
-                    String.format("Unable to save config '%s' for plugin %s. Couldn't access config file %s.",
-                            configKey, plugin.getName(), fcp.file));
-        }
+        saveConfig(plugin, configKey);
     }
 
     private static void loadErrMsg(Exception e, JavaPlugin plugin, String configKey,
@@ -275,7 +284,8 @@ public class ConfigManager {
     private class FileConfigPair {
         private final FileConfiguration config;
         private final File file;
-        private FileConfigPair( File f, FileConfiguration fc) {
+
+        private FileConfigPair(File f, FileConfiguration fc) {
             config = fc;
             file = f;
         }
