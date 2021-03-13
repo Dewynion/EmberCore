@@ -1,131 +1,140 @@
 package com.github.Dewynion.embercore.geometry;
 
-import com.github.Dewynion.embercore.EmberCore;
-import org.bukkit.Rotation;
 import org.bukkit.util.Vector;
 
-import java.util.logging.Level;
+public class RotationMatrix {
+    // column 1 - x axis
+    private Vector u;
+    // column 2 - y axis
+    private Vector v;
+    // column 3 - z axis
+    private Vector w;
 
-public class Matrix4x4 {
-    // Row-major
-
-    // First row
-    private double m11;
-    private double m21;
-    private double m31;
-    private double m41;
-
-    // Second row
-    private double m12;
-    private double m22;
-    private double m32;
-    private double m42;
-
-    // Third row
-    private double m13;
-    private double m23;
-    private double m33;
-    private double m43;
-
-    // Fourth row
-    private double m14;
-    private double m24;
-    private double m34;
-    private double m44;
-
-    public static Matrix4x4 identity() {
-        Matrix4x4 matrix = transformationMatrix();
-        matrix.setU(Vectors.RIGHT);
-        matrix.setV(Vectors.UP);
-        matrix.setW(Vectors.FORWARD);
-        matrix.setT(Vectors.ZERO);
-        return matrix;
+    public RotationMatrix() {
+        u = Vectors.ZERO;
+        v = Vectors.ZERO;
+        w = Vectors.ZERO;
     }
 
-    public static Matrix4x4 transformationMatrix() {
-        Matrix4x4 matrix = new Matrix4x4();
-        matrix.m41 = 0;
-        matrix.m42 = 0;
-        matrix.m43 = 0;
-        matrix.m44 = 1;
-    }
+    public static RotationMatrix fromEulerAngles(EulerAngles rotation) {
+        Vector zAxis = rotation.toDirectionVector();
+        Vector xAxis = new Vector(-zAxis.getZ(), zAxis.getY(), zAxis.getX());
+        Vector yAxis = zAxis.clone().crossProduct(xAxis).normalize();
+        xAxis = yAxis.clone().crossProduct(zAxis).normalize();
 
-    public static Matrix4x4 aboutAxisDegrees(Vector axis, double angle) {
-        Matrix4x4 matrix = transformationMatrix();
-
-        double sin = Math.sin(angle);
-        double cos = Math.cos(angle);
-        double nx = axis.getX();
-        double ny = axis.getY();
-        double nz = axis.getZ();
-
-
-    }
-
-    public void setU(Vector u) {
-        setU(u.getX(), u.getY(), u.getZ(), 0.0);
-    }
-
-    public void setU(double x, double y, double z, double q) {
-        m11 = x;
-        m12 = y;
-        m13 = z;
-        m14 = q;
+        return new RotationMatrix().setU(xAxis).setY(yAxis).setZ(zAxis);
     }
 
     public Vector u() {
-        return new Vector(m11, m12, m13);
-    }
-
-    public void setV(Vector v) {
-        setV(v.getX(), v.getY(), v.getZ(), 0.0);
-    }
-
-    public void setV(double x, double y, double z, double q) {
-        m21 = x;
-        m22 = y;
-        m23 = z;
-        m24 = q;
+        return u.clone();
     }
 
     public Vector v() {
-        return new Vector(m21, m22, m23);
-    }
-
-    public void setW(Vector w) {
-        setU(w.getX(), w.getY(), w.getZ(), 0.0);
-    }
-
-    public void setW(double x, double y, double z, double q) {
-        m31 = x;
-        m32 = y;
-        m33 = z;
-        m34 = q;
+        return v.clone();
     }
 
     public Vector w() {
-        return new Vector(31, 32, 33);
+        return w.clone();
     }
 
-    public void setT(Vector t) {
-        m41 = t.getX();
-        m42 = t.getY();
-        m43 = t.getZ();
+    public RotationMatrix setU(Vector u) {
+        this.u = u.clone();
+        return this;
     }
 
-    public Vector t() {
-        return new Vector(m41, m42, m43);
+    public RotationMatrix setV(Vector v) {
+        this.v = v.clone();
+        return this;
     }
 
-    public Matrix4x4 multiply(Matrix4x4 other) {
-        Vector u = u();
-        Vector v = v();
-        Vector w = w();
-        Vector t = t();
-        Vector ou = other.u();
-        Vector ov = other.v();
-        Vector ow = other.w();
-        Vector ot = other.t();
-        double m11 =
+    public RotationMatrix setW(Vector w) {
+        this.w = w.clone();
+        return this;
+    }
+
+    public Vector x() {
+        return new Vector(u.getX(), v.getX(), w.getX());
+    }
+
+    public Vector y() {
+        return new Vector(u.getY(), v.getY(), w.getY());
+    }
+
+    public Vector z() {
+        return new Vector(u.getZ(), v.getZ(), w.getZ());
+    }
+
+    public RotationMatrix setX(Vector x) {
+        u.setX(x.getX());
+        v.setX(x.getY());
+        w.setX(x.getZ());
+        return this;
+    }
+
+    public RotationMatrix setY(Vector y) {
+        u.setY(y.getX());
+        v.setY(y.getY());
+        w.setY(y.getZ());
+        return this;
+    }
+
+    public RotationMatrix setZ(Vector z) {
+        u.setZ(z.getX());
+        v.setZ(z.getY());
+        w.setZ(z.getZ());
+        return this;
+    }
+
+    public RotationMatrix multiply(RotationMatrix other) {
+        Vector x = x();
+        Vector y = y();
+        Vector z = z();
+        Vector a = other.u();
+        Vector b = other.v();
+        Vector c = other.w();
+        return setX(new Vector(x.clone().dot(a), x.clone().dot(b), x.clone().dot(c)))
+                .setY(new Vector(y.clone().dot(a), y.clone().dot(b), y.clone().dot(c)))
+                .setZ(new Vector(z.clone().dot(a), z.clone().dot(b), z.clone().dot(c)));
+    }
+
+    public RotationMatrix multiply(double mult) {
+        u.multiply(mult);
+        v.multiply(mult);
+        w.multiply(mult);
+        return this;
+    }
+
+    public Vector applyTo(Vector point) {
+        Vector xAxis = x();
+        Vector yAxis = y();
+        Vector zAxis = z();
+        double x = point.clone().dot(xAxis);
+        double y = point.clone().dot(yAxis);
+        double z = point.clone().dot(zAxis);
+        return new Vector(x, y, z);
+    }
+
+    public RotationMatrix clone() {
+        return new RotationMatrix()
+                .setU(u)
+                .setV(v)
+                .setW(w);
+    }
+
+    public static RotationMatrix angleAxis(Vector axis, double angle) {
+        double u = axis.getX();
+        double v = axis.getY();
+        double w = axis.getZ();
+        double sin = Math.sin(angle);
+        double cos = Math.cos(angle);
+        // u^2 + (1 - u^2)cos, uv(1-cos) - wsin, uw(1-cos) + vsin
+        Vector x = new Vector(u * u + (1 - u * u) * cos, u * v * (1 - cos) - w * sin, u * w * (1 - cos) + v * sin);
+        // uv(1-cos) + wsin, v^2 + (1-v^2)cos, vw(1-cos) - usin
+        Vector y = new Vector(u * v * (1 - cos) + w * sin, v * v + (1 - v * v) * cos, v * w * (1 - cos) - u * sin);
+        // uw(1-cos) - vsin, vw(1-cos) + usin, w^2 + (1-w^2)cos
+        Vector z = new Vector(u * w * (1 - cos) - v * sin, v * w * (1 - cos) + u * sin, w * w + (1 - w * w) * cos);
+        return new RotationMatrix().setX(x)
+                .setY(y)
+                .setZ(z);
     }
 }

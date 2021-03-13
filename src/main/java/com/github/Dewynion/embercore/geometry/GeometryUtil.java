@@ -1,9 +1,8 @@
-package com.github.Dewynion.embercore.util.geometry;
+package com.github.Dewynion.embercore.geometry;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GeometryUtil {
@@ -27,59 +26,108 @@ public class GeometryUtil {
     /**
      * Rotates one point in space around another by the given rotation vector.
      * Rotations are executed counterclockwise around all axes.
-     * @param point - The point to rotate from. Original is not affected.
-     * @param origin - The point to rotate around.
+     *
+     * @param point    - The point to rotate from. Original is not affected.
+     * @param origin   - The point to rotate around.
      * @param rotation - Rotation vector, in radians. Use {@link #rotateAroundDegrees(Location, Location, EulerAngles)}
-     *                for convenience if using degrees.
+     *                 for convenience if using degrees.
      * @return A clone of point rotated around origin by rotation.
      */
     public static Location rotateAround(Location point, Location origin, EulerAngles rotation) {
-        return rotateY(
-                rotateZ(
+        return rotateZ(
+                rotateY(
                         rotateX(point, origin, rotation.getX()),
-                        origin, rotation.getZ()),
-                origin, rotation.getY());
+                        origin, rotation.getY()),
+                origin, rotation.getZ());
     }
 
     public static Location rotateX(Location point, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        return rotateX(point, origin, sinTheta, cosTheta);
+    }
+
+    private static Location rotateX(Location point, Location origin, double sinTheta, double cosTheta) {
         double rX = point.getX() - origin.getX(),
                 rY = point.getY() - origin.getY(),
                 rZ = point.getZ() - origin.getZ();
-        double sinTheta = Math.sin(rotation),
-                cosTheta = Math.cos(rotation);
         double y = rY * cosTheta - rZ * sinTheta,
                 z = rZ * cosTheta + rY * sinTheta;
         return origin.clone().add(rX, y, z);
     }
 
     public static Location rotateY(Location point, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        return rotateY(point, origin, sinTheta, cosTheta);
+    }
+
+    private static Location rotateY(Location point, Location origin, double sinTheta, double cosTheta) {
         double rX = point.getX() - origin.getX(),
                 rY = point.getY() - origin.getY(),
                 rZ = point.getZ() - origin.getZ();
-        double sinTheta = Math.sin(rotation),
-                cosTheta = Math.cos(rotation);
         double x = rX * cosTheta + rZ * sinTheta,
                 z = rZ * cosTheta - rX * sinTheta;
         return origin.clone().add(x, rY, z);
     }
 
     public static Location rotateZ(Location point, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        return rotateZ(point, origin, sinTheta, cosTheta);
+    }
+
+    private static Location rotateZ(Location point, Location origin, double sinTheta, double cosTheta) {
         double rX = point.getX() - origin.getX(),
                 rY = point.getY() - origin.getY(),
                 rZ = point.getZ() - origin.getZ();
-        double sinTheta = Math.sin(rotation),
-                cosTheta = Math.cos(rotation);
         double y = rY * cosTheta + rX * sinTheta,
                 x = rX * cosTheta - rY * sinTheta;
         return origin.clone().add(x, y, rZ);
     }
 
-    public static Vector axisRotation(Vector point, Vector ax, Vector ay, Vector az) {
-        // formula for component c with point (x, y, z) and axes ax, ay, az:
-        // c = (x * ax.c) + (y * ay.c) + (z * az.c)
-        double x = (point.getX() * ax.getX()) + (point.getY() * ay.getX()) + (point.getZ() * az.getX());
-        double y = (point.getX() * ax.getY()) + (point.getY() * ay.getY()) + (point.getZ() * az.getY());
-        double z = (point.getX() * ax.getZ()) + (point.getY() * ay.getZ()) + (point.getZ() * az.getZ());
-        return new Vector(x, y, z);
+    public static List<Location> rotateAllDegrees(List<Location> points, Location origin, EulerAngles rotation) {
+        return rotateAll(points, origin, rotation.toRadians());
+    }
+
+    public static List<Location> rotateAll(List<Location> points, Location origin, EulerAngles rotation) {
+        return rotateZ(
+                rotateY(
+                        rotateX(points, origin, rotation.getX()),
+                        origin, rotation.getY()),
+                origin, rotation.getZ());
+    }
+
+    public static List<Location> rotateX(List<Location> points, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        for (int i = 0; i < points.size(); i++) {
+            Location l = points.get(i);
+            l = rotateX(l, origin, sinTheta, cosTheta);
+            points.set(i, l);
+        }
+        return points;
+    }
+
+    public static List<Location> rotateY(List<Location> points, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        for (int i = 0; i < points.size(); i++) {
+            Location l = points.get(i);
+            l = rotateY(l, origin, sinTheta, cosTheta);
+            points.set(i, l);
+        }
+        return points;
+    }
+
+    public static List<Location> rotateZ(List<Location> points, Location origin, double rotation) {
+        double sinTheta = Math.sin(rotation),
+                cosTheta = Math.cos(rotation);
+        for (int i = 0; i < points.size(); i++) {
+            Location l = points.get(i);
+            l = rotateZ(l, origin, sinTheta, cosTheta);
+            points.set(i, l);
+        }
+        return points;
     }
 }

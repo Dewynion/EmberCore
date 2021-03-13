@@ -18,7 +18,7 @@ public class MathUtil {
             return val1.compareTo(val2);
         } catch (ClassCastException e) {
             EmberCore.getInstance().getLogger().warning("MathUtil::compareTo(): " +
-                    "attempted comparison of noncomparables.");
+                    "attempted comparison of non-comparable types.");
             return 0;
         }
     }

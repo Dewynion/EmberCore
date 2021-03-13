@@ -1,18 +1,9 @@
-package com.github.Dewynion.embercore.util.geometry;
+package com.github.Dewynion.embercore.geometry;
 
-import com.github.Dewynion.embercore.EmberCore;
 import org.bukkit.util.Vector;
-
-import java.util.logging.Level;
 
 public class EulerAngles {
     public static final EulerAngles ZERO = new EulerAngles(0f, 0f, 0f);
-    public static final EulerAngles RIGHT = new EulerAngles(0f, -90f, 0f);
-    public static final EulerAngles LEFT = new EulerAngles(0f, 90f, 0f);
-    public static final EulerAngles UP = new EulerAngles(90f, 0f, 0f);
-    public static final EulerAngles DOWN = new EulerAngles(-90f, 0f, 0f);
-    public static final EulerAngles BACKWARD = new EulerAngles(0f, 180f, 0f);
-    public static final EulerAngles UPSIDE_DOWN = new EulerAngles(180f, 0f, 0f);
 
     // Or: pitch, yaw, roll
     protected float x, y, z;
@@ -107,11 +98,11 @@ public class EulerAngles {
      */
     public Vector toDirectionVector() {
         // pitch = angle up and down
-        float y = (float) Math.sin(Math.toRadians(getPitch()));
+        double y = Math.sin(Math.toRadians(getPitch()));
         // yaw = angle on the horizontal plane
         // if z is the vertical axis on this plane and x is the horizontal,
-        float x = (float) Math.cos(Math.toRadians(getYaw()));
-        float z = (float) Math.sin(Math.toRadians(getYaw()));
+        double x = Math.cos(Math.toRadians(getYaw()));
+        double z = Math.sin(Math.toRadians(getYaw()));
         Vector vec = new Vector(x, y, z).normalize();
         return vec;
     }

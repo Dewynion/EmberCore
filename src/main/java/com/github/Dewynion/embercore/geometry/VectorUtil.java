@@ -1,4 +1,4 @@
-package com.github.Dewynion.embercore.util.geometry;
+package com.github.Dewynion.embercore.geometry;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;

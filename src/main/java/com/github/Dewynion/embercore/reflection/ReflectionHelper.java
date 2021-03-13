@@ -1,6 +1,7 @@
 package com.github.Dewynion.embercore.reflection;
 
 import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.config.ConfigInjector;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -10,7 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -23,6 +27,15 @@ public class ReflectionHelper {
     static {
         assemblies = new HashMap<>();
         singletons = new HashMap<>();
+    }
+
+    public static boolean registered(JavaPlugin plugin) {
+        return assemblies.containsKey(plugin);
+    }
+
+    public static void remove(JavaPlugin plugin) {
+        assemblies.remove(plugin);
+        singletons.remove(plugin);
     }
 
     public static List<Class<? extends Object>> getAllClasses(JavaPlugin plugin)
@@ -38,7 +51,7 @@ public class ReflectionHelper {
             if (pluginFile == null)
                 throw new IOException("EmberCore::ReflectionHelper: unable to load plugin assembly for " +
                         plugin.getName() + ".");
-            core.getLogger().info("ReflectionHelper: Retrieving assembly for " + plugin.getName() + ".");
+            EmberCore.info("ReflectionHelper: Retrieving assembly for %s.", plugin.getName());
             List<Class<?>> classes = new ArrayList<>();
             ZipFile zip = new ZipFile(pluginFile);
             String packagee = plugin.getClass().getPackage().getName()
@@ -101,22 +114,35 @@ public class ReflectionHelper {
                 else
                     pluginSingletons = singletons.get(plugin);
             }
+            // so basically
+            // get assembly of all classes
             List<Class<? extends Object>> assembly = ReflectionHelper.getAllClasses(plugin);
-            assembly.stream().filter(clz -> clz.isAnnotationPresent(Singleton.class))
+            List<Class<? extends Object>> singletonAssembly =
+                    assembly.stream().filter(clz -> clz.isAnnotationPresent(Singleton.class))
                     .sorted(Comparator.comparingInt(clz -> clz.getAnnotation(Singleton.class).priority()))
-                    .forEach(clz -> {
-                        try {
-                            // don't duplicate if this singleton has been instantiated already
-                            if (!pluginSingletons.stream().anyMatch(obj -> obj.getClass().equals(clz))) {
-                                Object inst = clz.getConstructor().newInstance();
-                                core.getLogger().info("  Loaded singleton " + clz.getSimpleName() + " with priority " +
-                                        clz.getAnnotation(Singleton.class).priority());
-                                pluginSingletons.add(inst);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    .collect(Collectors.toList());
+
+            for (Class<? extends Object> clz : singletonAssembly) {
+                try {
+                    // don't duplicate if this singleton has been instantiated already
+                    if (!pluginSingletons.stream().anyMatch(obj -> obj.getClass().equals(clz))) {
+                        Object inst = clz.getConstructor().newInstance();
+                        ConfigInjector.autoInjectFields(plugin, inst, true);
+                        core.getLogger().info("  Loaded singleton " + clz.getSimpleName() + " with priority " +
+                                clz.getAnnotation(Singleton.class).priority());
+                        pluginSingletons.add(inst);
+                        if (!plugin.isEnabled()) {
+                            EmberCore.info("Plugin %s has been disabled. Stopping singleton load.",
+                                    plugin.getName());
+                            // nothing here
+                            return Collections.emptySet();
                         }
-                    });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            ;
             singletons.put(plugin, pluginSingletons);
         } catch (IOException ioex) {
             ioex.printStackTrace();
@@ -163,6 +189,11 @@ public class ReflectionHelper {
      */
     public static void postSetup(JavaPlugin plugin) {
         Map<Method, Object> postSetupMethods = new HashMap<>();
+        if (!plugin.isEnabled()) {
+            EmberCore.warn("Plugin %s is disabled. Post-setup will not be called.",
+                    plugin.getName());
+            return;
+        }
         getSingletons(plugin).forEach(inst -> {
             Method[] methodArr = inst.getClass().getMethods();
             for (Method method : methodArr) {

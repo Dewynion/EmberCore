@@ -1,9 +1,7 @@
 package com.github.Dewynion.embercore.physics;
 
 import com.github.Dewynion.embercore.CoreLoadPriority;
-import com.github.Dewynion.embercore.EmberCore;
-import com.github.Dewynion.embercore.config.ConfigConstants;
-import com.github.Dewynion.embercore.reflection.PostSetup;
+import com.github.Dewynion.embercore.config.YamlSerialized;
 import com.github.Dewynion.embercore.reflection.Singleton;
 
 import java.util.*;
@@ -11,20 +9,13 @@ import java.util.*;
 @Singleton(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
 public class ProjectileRegistry {
     private static ProjectileRegistry instance;
-    private int maxProjectiles;
+    @YamlSerialized
+    private int maxProjectiles = 1000;
     private LinkedHashSet<VectorProjectile> projectiles;
 
     public ProjectileRegistry() {
         instance = this;
         projectiles = new LinkedHashSet<>();
-    }
-
-    @PostSetup(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
-    public void config() {
-        maxProjectiles = EmberCore.getConfigManager().getInt(EmberCore.getInstance(),
-                EmberCore.CONFIG_KEY,
-                ConfigConstants.MAX_PROJECTILES.getPath(),
-                (int) ConfigConstants.MAX_PROJECTILES.getDefaultValue());
     }
 
     public static ProjectileRegistry getInstance() {

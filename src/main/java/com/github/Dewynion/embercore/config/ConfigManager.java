@@ -127,9 +127,15 @@ public class ConfigManager {
      * existing {@link FileConfiguration} instead.
      */
     public void registerConfig(JavaPlugin plugin, String configKey, File file, FileConfiguration config) {
-        pluginConfigs.get(plugin).put(configKey, new FileConfigPair(file, config));
-        if (configKey.contentEquals(DEFAULT_CONFIG_KEY))
-            EmberCore.log(Level.INFO, plugin.getName() + " registered a new default config.");
+        try {
+            pluginConfigs.get(plugin).put(configKey, new FileConfigPair(file, config));
+            if (configKey.contentEquals(DEFAULT_CONFIG_KEY))
+                EmberCore.log(Level.INFO, plugin.getName() + " registered a new default config.");
+        } catch (NullPointerException ex) {
+            ex.printStackTrace();
+            if (!pluginConfigs.containsKey(plugin))
+                EmberCore.log(Level.INFO, "Plugin is not registered with EmberCore.");
+        }
     }
 
     /**
@@ -158,7 +164,7 @@ public class ConfigManager {
                                 configKey + "'.");
                 return defaultValue;
             }
-            return pluginConfigs.get(plugin).get(configKey).config.get(path);
+            return pluginConfigs.get(plugin).get(configKey).config.get(path, defaultValue);
         } catch (Exception e) {
             loadErrMsg(e, plugin, configKey, path, defaultValue);
             if (setIfNotExists)
@@ -264,7 +270,8 @@ public class ConfigManager {
      */
     public void set(JavaPlugin plugin, String configKey, String path, Object value) {
         FileConfigPair fcp = pluginConfigs.get(plugin).get(configKey);
-        fcp.config.set(path, value);
+        fcp.config.options().copyDefaults(true);
+        fcp.config.addDefault(path, value);
         saveConfig(plugin, configKey);
     }
 

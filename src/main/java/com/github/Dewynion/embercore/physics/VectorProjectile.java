@@ -1,6 +1,8 @@
 package com.github.Dewynion.embercore.physics;
 
 import com.github.Dewynion.embercore.EmberCore;
+import com.github.Dewynion.embercore.geometry.Vectors;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
@@ -14,41 +16,43 @@ import javax.annotation.Nullable;
 public class VectorProjectile {
     public static double DEFAULT_SIZE = 0.5;
     private boolean active;
-    private LivingEntity owner;
-    private Location location;
-    private BoundingBox hitbox;
-    private Vector velocity;
-    private Vector acceleration;
+    protected LivingEntity owner;
+    protected Location location;
+    protected BoundingBox hitbox;
+    protected Vector velocity = Vectors.ZERO;
+    protected Vector acceleration = Vectors.ZERO;
     /**
      * How many sections to divide each location update into.
      * If this is 5 and the projectile's velocity is 10 meters per tick
      * in the positive X direction, all on-tick functions will be called
      * every 10/5 = 2 meters.
      */
-    private int interpolationScale = 1;
-    private long expireTime = 0;
-    private double range = 0.0;
+    protected int interpolationScale = 1;
+    protected long expireTime = 0;
+    protected double range = 0.0;
+    private boolean recalculateInterpolationScale = false;
 
     public VectorProjectile(Location location) {
         this.location = location;
         active = true;
         hitbox = BoundingBox.of(location, DEFAULT_SIZE, DEFAULT_SIZE, DEFAULT_SIZE);
         ProjectileRegistry.getInstance().registerProjectile(this);
+        init();
     }
 
-    public void destroy() {
+    public final void destroy() {
         active = false;
     }
 
-    public LivingEntity getOwner() {
+    public final LivingEntity getOwner() {
         return owner;
     }
 
-    public boolean hasOwner() {
+    public final boolean hasOwner() {
         return owner != null;
     }
 
-    public void setOwner(@Nullable LivingEntity newOwner) {
+    public final void setOwner(@Nullable LivingEntity newOwner) {
         owner = newOwner;
     }
 
@@ -56,7 +60,7 @@ public class VectorProjectile {
      * Sets the current lifetime of the projectile in milliseconds.
      * Use a value of 0 to set an infinite lifetime. This is not recommended.
      */
-    public void setLifetime(long lifetime) {
+    public final void setLifetime(long lifetime) {
         if (lifetime == 0)
             expireTime = 0;
         else
@@ -67,14 +71,14 @@ public class VectorProjectile {
      * Sets the maximum range of the projectile before it expires.
      * Set to 0 for infinite range. This is not recommended.
      */
-    public void setRange(double newRange) {
+    public final void setRange(double newRange) {
         range = Math.abs(newRange);
     }
 
     /**
      * Sets the size of the projectile's hitbox.
      */
-    public void setSize(double width, double height, double length) {
+    public final void setSize(double width, double height, double length) {
         double x = location.getX(),
                 y = location.getY(),
                 z = location.getZ(),
@@ -83,9 +87,10 @@ public class VectorProjectile {
                 lR = length / 2;
         hitbox.resize(x - wR, y - hR, z - lR,
                 x + wR, y + hR, z + lR);
+        recalculateInterpolationScale = true;
     }
 
-    public int getInterpolationScale() {
+    public final int getInterpolationScale() {
         return interpolationScale;
     }
 
@@ -95,10 +100,24 @@ public class VectorProjectile {
      *
      * @param newScale
      */
-    public void setInterpolationScale(int newScale) {
-        if (newScale < 1)
-            newScale = 1;
-        interpolationScale = newScale;
+    public final void setInterpolationScale(int newScale) {
+        interpolationScale = Math.max(1, newScale);
+        recalculateInterpolationScale = false;
+    }
+
+    /**
+     * Lazy implementation that tries to ensure proper collision for projectiles that move more than
+     * their width in a single tick.
+     */
+    public final int autoInterpolationScale() {
+        double length = velocity.length();
+        double smallest = Math.min(hitbox.getWidthX(), Math.min(hitbox.getWidthZ(), hitbox.getHeight()));
+        return (int) Math.floor(length / smallest);
+    }
+
+    public final void setVelocity(Vector newVelocity) {
+        velocity = newVelocity;
+        recalculateInterpolationScale = true;
     }
 
     /**
@@ -142,37 +161,47 @@ public class VectorProjectile {
         return block.getType().isSolid();
     }
 
-    private final void init() {
+    private void init() {
         new BukkitRunnable() {
             private double distSquared;
+            private Vector interpolatedVelocity;
 
             public void run() {
-                if (!active || System.currentTimeMillis() >= expireTime)
+                if (!active || (expireTime != 0 && System.currentTimeMillis() >= expireTime))
                     cancel();
-                Vector interpolatedVelocity = velocity.clone().divide(new Vector(interpolationScale,
-                        interpolationScale, interpolationScale));
+                // This will be flagged if the hitbox size or velocity change.
+                if (recalculateInterpolationScale || interpolatedVelocity == null) {
+                    setInterpolationScale(autoInterpolationScale());
+                    interpolatedVelocity = velocity.clone().divide(new Vector(interpolationScale,
+                            interpolationScale, interpolationScale));
+                }
+
+                // standard tick
                 onTick();
                 for (int i = 0; i < interpolationScale; i++) {
                     // if it connects with a block it perceives as solid,
                     // reaches its maximum lifetime, travels its maximum range,
                     // or has been destroyed externally, cancel the thread
                     if (shouldHitBlock(location.getBlock()) ||
-                            distSquared >= Math.pow(range, 2))
+                            (range != 0 && distSquared >= Math.pow(range, 2)))
                         cancel();
 
+                    // interpolated tick
+                    interpolatedTick();
+                    for (LivingEntity entity : location.getWorld().getLivingEntities()) {
+                        if (!hitbox.overlaps(entity.getBoundingBox()))
+                            continue;
+                        if (shouldHitEntity(entity))
+                            if (onHitEntity(entity))
+                                cancel();
+                    }
                     Location prev = location.clone();
                     location.add(interpolatedVelocity);
                     distSquared += prev.distanceSquared(location);
-                    hitbox.shift(location.clone().subtract(prev));
-
-                    for (LivingEntity entity : location.getWorld().getLivingEntities()) {
-                        if (hitbox.contains(entity.getBoundingBox()) &&
-                                shouldHitEntity(entity) &&
-                                onHitEntity(entity))
-                            cancel();
-                    }
+                    hitbox.shift(interpolatedVelocity);
                 }
-                velocity.add(acceleration);
+                if (!acceleration.equals(Vectors.ZERO))
+                    setVelocity(velocity.add(acceleration));
             }
 
             public void cancel() {
