@@ -1,15 +1,18 @@
 package com.github.Dewynion.embercore.util.geometry;
 
+import com.github.Dewynion.embercore.EmberCore;
 import org.bukkit.util.Vector;
 
+import java.util.logging.Level;
+
 public class EulerAngles {
-    public static EulerAngles zero = new EulerAngles(0f, 0f, 0f);
-    public static EulerAngles right = new EulerAngles(0f, 90f, 0f);
-    public static EulerAngles left = new EulerAngles(0f, -90f, 0f);
-    public static EulerAngles up = new EulerAngles(90f, 0f, 0f);
-    public static EulerAngles down = new EulerAngles(-90f, 0f, 0f);
-    public static EulerAngles backward = new EulerAngles(0f, 180f, 0f);
-    public static EulerAngles upsideDown = new EulerAngles(180f, 0f, 0f);
+    public static final EulerAngles ZERO = new EulerAngles(0f, 0f, 0f);
+    public static final EulerAngles RIGHT = new EulerAngles(0f, -90f, 0f);
+    public static final EulerAngles LEFT = new EulerAngles(0f, 90f, 0f);
+    public static final EulerAngles UP = new EulerAngles(90f, 0f, 0f);
+    public static final EulerAngles DOWN = new EulerAngles(-90f, 0f, 0f);
+    public static final EulerAngles BACKWARD = new EulerAngles(0f, 180f, 0f);
+    public static final EulerAngles UPSIDE_DOWN = new EulerAngles(180f, 0f, 0f);
 
     // Or: pitch, yaw, roll
     protected float x, y, z;
@@ -18,9 +21,9 @@ public class EulerAngles {
      * Stores a 3-angle representation of a rotation. Uses degrees.
      */
     public EulerAngles(float x, float y, float z) {
-        this.x = (float) GeometryUtil.clampAngle(x);
-        this.y = (float) GeometryUtil.clampAngle(y);
-        this.z = (float) GeometryUtil.clampAngle(z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public float getX() {
@@ -60,9 +63,9 @@ public class EulerAngles {
     }
 
     public EulerAngles setAngle(float x, float y, float z) {
-        this.x = (float) GeometryUtil.clampAngle(x);
-        this.y = (float) GeometryUtil.clampAngle(y);
-        this.z = (float) GeometryUtil.clampAngle(z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
     }
 
@@ -72,6 +75,10 @@ public class EulerAngles {
 
     public EulerAngles subtract(EulerAngles angles) {
         return setAngle(this.x - angles.x, this.y - angles.y, this.z - angles.z);
+    }
+
+    public EulerAngles multiply(Vector vec) {
+        return setAngle(this.x * (float) vec.getX(), this.y * (float) vec.getY(), this.z * (float) vec.getZ());
     }
 
     /**
@@ -105,10 +112,23 @@ public class EulerAngles {
         // if z is the vertical axis on this plane and x is the horizontal,
         float x = (float) Math.cos(Math.toRadians(getYaw()));
         float z = (float) Math.sin(Math.toRadians(getYaw()));
-        return new Vector(x, y, z).normalize();
+        Vector vec = new Vector(x, y, z).normalize();
+        return vec;
     }
 
     public EulerAngles toRadians() {
         return new EulerAngles((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
+    }
+
+    public EulerAngles clone() {
+        return new EulerAngles(x, y, z);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof EulerAngles))
+            return false;
+        EulerAngles o = (EulerAngles) other;
+        return this.x == o.x && this.y == o.y && this.z == o.z;
     }
 }

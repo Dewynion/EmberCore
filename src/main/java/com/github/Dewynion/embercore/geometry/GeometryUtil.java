@@ -73,4 +73,13 @@ public class GeometryUtil {
                 x = rX * cosTheta - rY * sinTheta;
         return origin.clone().add(x, y, rZ);
     }
+
+    public static Vector axisRotation(Vector point, Vector ax, Vector ay, Vector az) {
+        // formula for component c with point (x, y, z) and axes ax, ay, az:
+        // c = (x * ax.c) + (y * ay.c) + (z * az.c)
+        double x = (point.getX() * ax.getX()) + (point.getY() * ay.getX()) + (point.getZ() * az.getX());
+        double y = (point.getX() * ax.getY()) + (point.getY() * ay.getY()) + (point.getZ() * az.getY());
+        double z = (point.getX() * ax.getZ()) + (point.getY() * ay.getZ()) + (point.getZ() * az.getZ());
+        return new Vector(x, y, z);
+    }
 }
