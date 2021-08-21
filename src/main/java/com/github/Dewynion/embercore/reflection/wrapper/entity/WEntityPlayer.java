@@ -6,7 +6,6 @@ import com.github.Dewynion.embercore.reflection.wrapper.NmsClassWrapper;
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.logging.Level;
 
@@ -27,7 +26,7 @@ public class WEntityPlayer extends NmsClassWrapper {
 
     private Player player;
 
-    public WEntityPlayer(@Nonnull Player player) {
+    public WEntityPlayer(Player player) {
         this.player = player;
         WCraftPlayer wcp = new WCraftPlayer(player);
         object = wcp.getHandle();

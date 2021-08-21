@@ -10,9 +10,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public class VectorProjectile {
     public static double DEFAULT_SIZE = 0.5;
     private boolean active;
@@ -52,7 +49,7 @@ public class VectorProjectile {
         return owner != null;
     }
 
-    public final void setOwner(@Nullable LivingEntity newOwner) {
+    public final void setOwner(LivingEntity newOwner) {
         owner = newOwner;
     }
 
@@ -146,18 +143,18 @@ public class VectorProjectile {
      * @return True if the projectile should be destroyed after this code is run,
      * false otherwise.
      */
-    public boolean onHitEntity(@Nonnull LivingEntity entity) {
+    public boolean onHitEntity(LivingEntity entity) {
         return true;
     }
 
     /**
      * Determines whether or not to hit
      */
-    public boolean shouldHitEntity(@Nonnull LivingEntity entity) {
+    public boolean shouldHitEntity(LivingEntity entity) {
         return !entity.equals(owner);
     }
 
-    public boolean shouldHitBlock(@Nonnull Block block) {
+    public boolean shouldHitBlock(Block block) {
         return block.getType().isSolid();
     }
 
