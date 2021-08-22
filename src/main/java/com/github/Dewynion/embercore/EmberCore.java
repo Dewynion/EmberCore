@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
 
-public class EmberCore extends JavaPlugin {
+public final class EmberCore extends JavaPlugin {
     public static final String CONFIG_KEY = "config";
 
     private static EmberCore instance;

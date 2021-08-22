@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 
+@Deprecated
 @Singleton(priority = CoreLoadPriority.CONFIG_MANAGER_PRIORITY)
 public class ConfigManager {
     public static final String DEFAULT_CONFIG_KEY = "config";

@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShapeUtil {
+public final class ShapeUtil {
     /**
      * Generates a list of Locations that form a line from start to end.
      *

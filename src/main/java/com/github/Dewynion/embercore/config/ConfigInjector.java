@@ -17,11 +17,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-public class ConfigInjector {
+public final class ConfigInjector {
 
     private static final String SERIALIZE_METHOD = "toConfigurationSection";
     private static final String DESERIALIZE_METHOD = "fromConfigurationSection";
 
+    /**
+     * Automatically injects values into every field in an object that is marked with
+     * {@link YamlSerialized} using YAML configuration files. The actual injection is
+     * performed in {@link #injectIntoField(Field, Object, FileConfiguration)}.
+     * <br><br>
+     * The provided {@link JavaPlugin} is used to determine the root directory
+     * in which to search for configuration files.
+     * @param writeDefaults Whether or not to write the default (hardcoded) value of fields to
+     *                      the configuration file if those fields do not exist in the file.
+     */
     public static void autoInjectFields(JavaPlugin plugin, Object o, boolean writeDefaults) {
         Map<String, FileConfiguration> tmpFiles = new HashMap<>();
         for (Field field : o.getClass().getDeclaredFields()) {
@@ -48,6 +58,10 @@ public class ConfigInjector {
         }
     }
 
+    /**
+     * Injects a value from a {@link FileConfiguration} into the provided field in the provided object.
+     * Does nothing if the field is not annotated with {@link YamlSerialized}.
+     */
     public static void injectIntoField(Field field, Object o, FileConfiguration fc) {
         if (!field.isAnnotationPresent(YamlSerialized.class))
             return;

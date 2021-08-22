@@ -7,7 +7,7 @@ import com.github.Dewynion.embercore.reflection.Singleton;
 import java.util.*;
 
 @Singleton(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
-public class ProjectileRegistry {
+public final class ProjectileRegistry {
     private static ProjectileRegistry instance;
     @YamlSerialized
     private int maxProjectiles = 1000;

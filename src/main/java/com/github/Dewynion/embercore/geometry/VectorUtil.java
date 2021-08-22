@@ -3,8 +3,17 @@ package com.github.Dewynion.embercore.geometry;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
-public class VectorUtil {
-    public static boolean isInRange(Location source, Location target, float visionRadius, double visionRange) {
+public final class VectorUtil {
+    /**
+     * Determines if the source location can "see" the target location. Does not take line of sight into account.
+     * <br><br>
+     * An example use case would be having a "guard" NPC detect players up to 10 meters and 60 degrees in front of them,
+     * allowing players to sneak behind the NPC without attracting its attention.
+     * @param visionRadius The angle, in degrees, that the source's vision covers. A vision radius of 90 degrees
+     *                     can see up to 45 degrees left or right, covering a total of 90 degrees of vision.
+     * @param visionRange The maximum distance, in meters (blocks), that the source can "see".
+     */
+    public static boolean canSee(Location source, Location target, float visionRadius, double visionRange) {
         // if the source location is blind
         if (visionRadius == 0f || visionRange == 0f)
             return false;

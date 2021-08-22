@@ -11,7 +11,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Singleton(priority = CoreLoadPriority.PLUGIN_EVENT_LISTENER_PRIORITY)
-public class PluginEventListener implements Listener {
+public final class PluginEventListener implements Listener {
 
     /**
      * Exists to clear out unnecessary assembly information for

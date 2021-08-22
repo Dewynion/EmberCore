@@ -16,8 +16,8 @@ public class VectorProjectile {
     protected LivingEntity owner;
     protected Location location;
     protected BoundingBox hitbox;
-    protected Vector velocity = Vectors.ZERO;
-    protected Vector acceleration = Vectors.ZERO;
+    protected Vector velocity = Vectors.zero();
+    protected Vector acceleration = Vectors.zero();
     /**
      * How many sections to divide each location update into.
      * If this is 5 and the projectile's velocity is 10 meters per tick
@@ -197,7 +197,7 @@ public class VectorProjectile {
                     distSquared += prev.distanceSquared(location);
                     hitbox.shift(interpolatedVelocity);
                 }
-                if (!acceleration.equals(Vectors.ZERO))
+                if (!acceleration.equals(Vectors.zero()))
                     setVelocity(velocity.add(acceleration));
             }
 

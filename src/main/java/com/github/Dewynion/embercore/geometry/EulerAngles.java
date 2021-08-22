@@ -17,7 +17,7 @@ public class EulerAngles {
         this.z = z;
     }
 
-    public float getX() {
+    public final float getX() {
         return x;
     }
 
@@ -25,11 +25,11 @@ public class EulerAngles {
      * Pitch is another way of referring to rotation about the x axis, such as a plane's nose tilting up and down.
      * Returns the same thing as {@link #getX()}.
      */
-    public float getPitch() {
+    public final float getPitch() {
         return x;
     }
 
-    public float getY() {
+    public final float getY() {
         return y;
     }
 
@@ -37,11 +37,11 @@ public class EulerAngles {
      * Yaw is another way of referring to rotation about the y axis, such as the spin of a compass needle.
      * Returns the same thing as {@link #getY()}.
      */
-    public float getYaw() {
+    public final float getYaw() {
         return y;
     }
 
-    public float getZ() {
+    public final float getZ() {
         return z;
     }
 
@@ -49,26 +49,26 @@ public class EulerAngles {
      * Roll is another way of referring to rotation about the z axis, such as a plane rolling side to side.
      * Returns the same thing as {@link #getZ()}.
      */
-    public float getRoll() {
+    public final float getRoll() {
         return z;
     }
 
-    public EulerAngles setAngle(float x, float y, float z) {
+    public final EulerAngles setAngle(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
         return this;
     }
 
-    public EulerAngles add(EulerAngles angles) {
+    public final EulerAngles add(EulerAngles angles) {
         return setAngle(this.x + angles.x, this.y + angles.y, this.z + angles.z);
     }
 
-    public EulerAngles subtract(EulerAngles angles) {
+    public final EulerAngles subtract(EulerAngles angles) {
         return setAngle(this.x - angles.x, this.y - angles.y, this.z - angles.z);
     }
 
-    public EulerAngles multiply(Vector vec) {
+    public final EulerAngles multiply(Vector vec) {
         return setAngle(this.x * (float) vec.getX(), this.y * (float) vec.getY(), this.z * (float) vec.getZ());
     }
 
@@ -96,7 +96,7 @@ public class EulerAngles {
     /**
      * Returns a (normalized) direction vector based on this rotation.
      */
-    public Vector toDirectionVector() {
+    public final Vector toDirectionVector() {
         // pitch = angle up and down
         double y = Math.sin(Math.toRadians(getPitch()));
         // yaw = angle on the horizontal plane
@@ -107,7 +107,7 @@ public class EulerAngles {
         return vec;
     }
 
-    public EulerAngles toRadians() {
+    public final EulerAngles toRadians() {
         return new EulerAngles((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
     }
 

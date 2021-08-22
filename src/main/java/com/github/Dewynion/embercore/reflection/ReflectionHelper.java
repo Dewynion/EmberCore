@@ -18,11 +18,11 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ReflectionHelper {
+public final class ReflectionHelper {
     public final static String CLASS_EXTENSION = ".class";
     public final static String PLUGIN_FILE_METHOD = "getFile";
-    private static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
-    private static HashMap<JavaPlugin, Set<Object>> singletons;
+    private final static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
+    private final static HashMap<JavaPlugin, Set<Object>> singletons;
 
     static {
         assemblies = new HashMap<>();

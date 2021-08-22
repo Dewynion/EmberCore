@@ -2,7 +2,7 @@ package com.github.Dewynion.embercore.util;
 
 import com.github.Dewynion.embercore.EmberCore;
 
-public class MathUtil {
+public final class MathUtil {
     public static <T extends Number & Comparable> T clamp(T val, T min, T max) {
         try {
             return val.compareTo(min) > 0 ? (val.compareTo(max) < 0 ? val : max) : min;

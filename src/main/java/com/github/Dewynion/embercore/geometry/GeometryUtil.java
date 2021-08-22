@@ -5,8 +5,8 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public class GeometryUtil {
-    public static double MAX_ANGLE_DEGREES = 360.0;
+public final class GeometryUtil {
+    public static final double MAX_ANGLE_DEGREES = 360.0;
 
     public static double clampAngle(double angle) {
         while (angle > MAX_ANGLE_DEGREES)

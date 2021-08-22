@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Random;
 
-public class MovingParticle {
+public final class MovingParticle {
     private static final Random rand = new Random();
 
     public static void spawnMovingParticles(Location location, Particle particle, int count, double offsetX,
