@@ -2,6 +2,7 @@ package com.github.Dewynion.embercore.geometry;
 
 import org.bukkit.util.Vector;
 
+@Deprecated
 public class RotationMatrix {
     // column 1 - x axis
     private Vector u;
@@ -11,9 +12,9 @@ public class RotationMatrix {
     private Vector w;
 
     public RotationMatrix() {
-        u = Vectors.ZERO;
-        v = Vectors.ZERO;
-        w = Vectors.ZERO;
+        u = Vectors.zero();
+        v = Vectors.zero();
+        w = Vectors.zero();
     }
 
     public static RotationMatrix fromEulerAngles(EulerAngles rotation) {

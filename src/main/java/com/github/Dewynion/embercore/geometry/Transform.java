@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public class Transform {
     private RotationMatrix rotationMatrix;
     private EulerAngles localRotation;
