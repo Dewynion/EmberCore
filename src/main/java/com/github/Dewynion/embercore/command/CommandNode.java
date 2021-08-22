@@ -91,6 +91,16 @@ public abstract class CommandNode {
         return this;
     }
 
+    public final boolean executeLeaf(CommandSender sender, String[] args) {
+        if (args.length > Math.abs(numArgs)) {
+            for (CommandNode subcommand : children) {
+                if (subcommand.aliases.contains(args[0].toLowerCase()))
+                    return subcommand.executeLeaf(sender, Arrays.copyOfRange(args, 1, args.length));
+            }
+        }
+        return execute(sender, args);
+    }
+
     /**
      * Generates a command string from this node and its parents.<br>
      * For example, given structure
