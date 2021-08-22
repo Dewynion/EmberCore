@@ -1,5 +1,6 @@
 package com.github.Dewynion.embercore.command;
 
+import com.google.common.collect.ImmutableSet;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -99,6 +100,10 @@ public abstract class CommandNode {
             }
         }
         return execute(sender, args);
+    }
+
+    public final Set<CommandNode> getChildren() {
+        return ImmutableSet.copyOf(children);
     }
 
     /**
