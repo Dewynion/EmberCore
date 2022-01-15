@@ -33,7 +33,7 @@ public class VectorProjectile {
         this.location = location;
         active = true;
         hitbox = BoundingBox.of(location, DEFAULT_SIZE, DEFAULT_SIZE, DEFAULT_SIZE);
-        ProjectileRegistry.getInstance().registerProjectile(this);
+        ProjectileRegistry.registerProjectile(this);
         init();
     }
 
@@ -158,7 +158,7 @@ public class VectorProjectile {
         return block.getType().isSolid();
     }
 
-    private void init() {
+    protected void init() {
         new BukkitRunnable() {
             private double distSquared;
             private Vector interpolatedVelocity;
@@ -204,7 +204,7 @@ public class VectorProjectile {
             public void cancel() {
                 active = false;
                 onDeath();
-                ProjectileRegistry.getInstance().removeProjectile(VectorProjectile.this);
+                ProjectileRegistry.removeProjectile(VectorProjectile.this);
                 super.cancel();
             }
         }.runTaskTimer(EmberCore.getInstance(), 0, 1);

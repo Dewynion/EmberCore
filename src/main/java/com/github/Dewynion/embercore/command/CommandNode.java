@@ -1,7 +1,10 @@
 package com.github.Dewynion.embercore.command;
 
+import com.github.Dewynion.embercore.EmberCore;
 import com.google.common.collect.ImmutableSet;
+import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,14 +14,21 @@ public abstract class CommandNode {
     protected String identifier;
     protected Set<String> aliases;
     protected String description = "No description available.";
+    protected String shortDescription = "No description available.";
     protected String usage = "/<commmand>";
     protected int numArgs = 0;
     protected boolean playerOnly = false;
 
-    /** The parent of this node. May be null. DO NOT set directly; use {@link #setParent(CommandNode)} instead. */
+    /**
+     * The parent of this node. May be null. DO NOT set directly; use {@link #setParent(CommandNode)} instead.
+     */
     private CommandNode parent;
-    /** The children of this node. May be empty. Do not modify directly; assign children to this node via {@link #setParent(CommandNode)}. */
+    /**
+     * The children of this node. May be empty. Do not modify directly; assign children to this node via {@link #setParent(CommandNode)}.
+     */
     private Set<CommandNode> children;
+
+    private final static String[] EMPTY_ARGS = new String[0];
 
     public CommandNode(String identifier, String... aliases) {
         this.identifier = identifier;
@@ -36,10 +46,10 @@ public abstract class CommandNode {
     }
 
     /**
-     *  Sets the parent CommandNode of this node. Handles removal of this node from its old parent's children
-     *  (if applicable) and addition to the new parent's children (if applicable).
+     * Sets the parent CommandNode of this node. Handles removal of this node from its old parent's children
+     * (if applicable) and addition to the new parent's children (if applicable).
      */
-    public final void setParent(CommandNode newParent) {
+    protected void setParent(CommandNode newParent) {
         if (parent != null)
             parent.children.remove(this);
         parent = newParent;
@@ -47,9 +57,11 @@ public abstract class CommandNode {
             parent.children.add(this);
     }
 
-    /** Returns the usage string of this command, replacing "< command >" (minus spaces) with the identifier. */
+    /**
+     * Returns the usage string of this command, replacing "< command >" (minus spaces) with the full command.
+     */
     public final String getUsage() {
-        return usage.replace("<command>", identifier);
+        return usage.replace("<command>", getCommandString());
     }
 
     public final String getIdentifier() {
@@ -63,6 +75,10 @@ public abstract class CommandNode {
         return description;
     }
 
+    public final String getShortDescription() {
+        return shortDescription;
+    }
+
     /**
      * Whether the command contained within this node can only be run by a player.
      * Does nothing on its own; exists solely for convenience in command handlers designed for either player
@@ -70,6 +86,14 @@ public abstract class CommandNode {
      */
     public final boolean isPlayerOnly() {
         return playerOnly;
+    }
+
+    public final Set<CommandNode> getChildren() {
+        return ImmutableSet.copyOf(children);
+    }
+
+    public final CommandNode getParent() {
+        return parent;
     }
 
     /**
@@ -81,29 +105,26 @@ public abstract class CommandNode {
      * and from that node, a child node with the identifier "leaf".
      */
     public final CommandNode getLeafCommand(String[] args) {
-        // if there are more arguments than this command accepts, assume there's a subcommand
-        if (args.length > Math.abs(numArgs)) {
+        if (args.length > numArgs && !children.isEmpty()) {
             for (CommandNode subcommand : children) {
                 if (subcommand.aliases.contains(args[0].toLowerCase()))
-                    return subcommand.getLeafCommand(Arrays.copyOfRange(args, 1, args.length));
+                    return subcommand.getLeafCommand(args.length <= 1 ? EMPTY_ARGS : Arrays.copyOfRange(args, 1, args.length));
             }
         }
         // if no subcommand was found, assume the player just entered too many arguments and return this command.
         return this;
     }
 
-    public final boolean executeLeaf(CommandSender sender, String[] args) {
-        if (args.length > Math.abs(numArgs)) {
+    public final boolean executeLeaf(CommandSender sender, String[] args) throws CommandException {
+        if (args.length > numArgs && !children.isEmpty()) {
             for (CommandNode subcommand : children) {
                 if (subcommand.aliases.contains(args[0].toLowerCase()))
-                    return subcommand.executeLeaf(sender, Arrays.copyOfRange(args, 1, args.length));
+                    return subcommand.executeLeaf(sender, args.length <= 1 ? EMPTY_ARGS : Arrays.copyOfRange(args, 1, args.length));
             }
         }
+        if (playerOnly && !(sender instanceof Player))
+            throw new CommandException(String.format("Non-players may not execute the command '/%s.'", getCommandString()));
         return execute(sender, args);
-    }
-
-    public final Set<CommandNode> getChildren() {
-        return ImmutableSet.copyOf(children);
     }
 
     /**
@@ -122,5 +143,6 @@ public abstract class CommandNode {
         return sb.toString().trim();
     }
 
+    // TODO: annotated argument types + automated conversion
     public abstract boolean execute(CommandSender sender, String[] args);
 }

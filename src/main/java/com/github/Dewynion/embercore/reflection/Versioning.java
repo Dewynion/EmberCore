@@ -41,12 +41,14 @@ public class Versioning {
             Class<?> clz = Class.forName(fullName);
             EmberCore.log(Level.INFO, "Success!");
             return clz;
+        } catch (ClassNotFoundException cnfe) {
+            EmberCore.severe("The given class was not found.");
         } catch (Exception e) {
             EmberCore.log(Level.SEVERE, "Versioning::forName(): Unable to retrieve class " +
                     fullName + ".");
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     /**

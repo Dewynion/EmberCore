@@ -29,7 +29,7 @@ public final class ShapeUtil {
     /**
      * Returns an arc facing east (positive x).
      */
-    public static List<Location> arc(Location center, EulerAngles direction, double angle, double radius, int points) {
+    public static List<Location> arc(Location center, Location target, double angle, double radius, int points) {
         List<Location> locations = new ArrayList<>();
         double angleIncrement = angle / points;
         for (int i = -points / 2; i < points / 2; i++)
@@ -48,7 +48,7 @@ public final class ShapeUtil {
      */
     public static List<Location> circle(Location center, double radius, int points) {
         List<Location> locations = new ArrayList<>();
-        double angle = GeometryUtil.MAX_ANGLE_DEGREES / points;
+        double angle = 360.0 / points;
         for (int i = 0; i < points; i++) {
             locations.add(center.clone().add(radius * Math.cos(i * angle),
                     0, radius * Math.sin(i * angle)));
