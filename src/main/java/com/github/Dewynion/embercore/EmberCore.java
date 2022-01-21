@@ -1,7 +1,6 @@
 package com.github.Dewynion.embercore;
 
 import com.github.Dewynion.embercore.reflection.PluginLoader;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -51,6 +50,26 @@ public final class EmberCore extends JavaPlugin {
         severe(instance, message, format);
     }
 
+    public static void logSerialization(JavaPlugin plugin, String message, Object... format) {
+        if (CoreSettings.coreLogSettings.serialization)
+            info(plugin, message, format);
+    }
+
+    public static void logSerialization(String message, Object... format) {
+        if (CoreSettings.coreLogSettings.serialization)
+            info(message, format);
+    }
+
+    public static void logInjection(JavaPlugin plugin, String message, Object... format) {
+        if (CoreSettings.coreLogSettings.injection)
+            info(plugin, message, format);
+    }
+
+    public static void logInjection(String message, Object... format) {
+        if (CoreSettings.coreLogSettings.injection)
+            info(message, format);
+    }
+
     public void onEnable() {
         instance = this;
 
@@ -61,17 +80,6 @@ public final class EmberCore extends JavaPlugin {
         info("  You're running on %s.", getServer().getVersion());
         printBlankLine();
         printDivider();
-
-        String level = getConfig().getString("log-level", "info");
-        try {
-            logLevel = Level.parse(level.toUpperCase());
-        } catch (Exception ignored) {}
-        info("Your log level is set to %s.", level.toUpperCase());
-        // Level is not an enum, so it's time to pull a YandereDev
-        if (logLevel.equals(Level.OFF))
-            info("This will disable logging entirely, but will not stop critical errors from printing to console.");
-        else if (logLevel.equals(Level.INFO))
-            info("This will produce a significant quantity of messages - set your log level to OFF, WARNING or SEVERE to disable this.");
 
         getLogger().setLevel(logLevel);
         setup(this);

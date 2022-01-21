@@ -1,30 +1,24 @@
 package com.github.Dewynion.embercore.reflection;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.github.Dewynion.embercore.EmberCore;
 import com.github.Dewynion.embercore.config.ConfigurationFormat;
 import com.github.Dewynion.embercore.config.PluginConfiguration;
 import com.github.Dewynion.embercore.config.serialization.ExcludeFromSerialization;
 import com.github.Dewynion.embercore.config.serialization.SerializationInfo;
-import com.sun.org.apache.xpath.internal.operations.Mult;
-import org.bukkit.Location;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import sun.misc.Unsafe;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -46,6 +40,10 @@ public final class ConfigInjector {
     }
 
     public static void injectIntoObject(JavaPlugin plugin, Object o) {
+        injectIntoObject(plugin, o, null);
+    }
+
+    public static void injectIntoObject(JavaPlugin plugin, Object o, File file) {
         File dataFolder = plugin.getDataFolder();
         if (!pluginConfigurations.containsKey(plugin))
             pluginConfigurations.put(plugin, new HashMap<>());
@@ -60,25 +58,34 @@ public final class ConfigInjector {
         // this is so you can define a config file in an annotation for a class itself ("commands.yml" for instance)
         // and not have to add @SerializationInfo(path = "your file here") to every field.
         String typeDefaultConfigFilename = Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
-                .map(SerializationInfo::filename).orElse(DEFAULT_CONFIG_FILE);
+                .filter(info -> info.filename().length() > 0)
+                .map(SerializationInfo::filename)
+                .orElse(DEFAULT_CONFIG_FILE);
 
-        EmberCore.info("Injecting configured values into object of type %s.", o.getClass().getName());
+        EmberCore.logInjection("Injecting configured values into object of type %s.", o.getClass().getName());
+        EmberCore.logInjection("Filename for this object: %s", typeDefaultConfigFilename);
 
         for (Field field : objectClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-
-                if (field.isAnnotationPresent(ExcludeFromSerialization.class) || (field.getModifiers() & Modifier.FINAL) != 0)
+                if (field.isAnnotationPresent(ExcludeFromSerialization.class))
                     continue;
                 // get the config file
-                File configFile = new File(dataFolder,
-                        Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
-                                .map(SerializationInfo::filename).orElse(typeDefaultConfigFilename));
+                String filename = typeDefaultConfigFilename;
+                if (field.isAnnotationPresent(SerializationInfo.class)) {
+                    String fieldFilename = field.getAnnotation(SerializationInfo.class).filename();
+                    if (fieldFilename.length() > 0) {
+                        EmberCore.logInjection("Filename override present on field %s: %s",
+                                field.getName(), fieldFilename);
+                        filename = fieldFilename;
+                    }
+                }
+                File configFile = file != null ? file : new File(dataFolder, filename);
                 String configFileName = configFile.getAbsolutePath();
 
                 // Optional.ofNullable was returning null here, so back to the classic method we go
                 if (!configs.containsKey(configFileName)) {
-                    EmberCore.info("Reading configuration file: %s", configFileName);
+                    EmberCore.logInjection("Reading configuration file: %s", configFileName);
                     configs.put(configFileName, PluginConfiguration.create(configFile, plugin));
                 }
                 PluginConfiguration configuration = configs.get(configFileName);
@@ -89,7 +96,7 @@ public final class ConfigInjector {
                     continue;
                 }
 
-                injectIntoField(plugin, field, o, configuration);
+                injectIntoField(field, o, configuration);
 
                 configuration.saveConfiguration();
             } catch (IllegalAccessException ex) {
@@ -99,7 +106,7 @@ public final class ConfigInjector {
         }
     }
 
-    public static void injectIntoField(JavaPlugin plugin, Field field, Object o, PluginConfiguration pc) throws IllegalAccessException {
+    public static <T> void injectIntoField(Field field, Object o, PluginConfiguration pc) throws IllegalAccessException {
         // path to follow through config - use the path in SerializationInfo or just start from the root element
         String configPath = Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
                 .map(SerializationInfo::path)
@@ -111,21 +118,16 @@ public final class ConfigInjector {
         // to achieve the same result
         if (configPath.equalsIgnoreCase(""))
             configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE)).toLowerCase();
-        EmberCore.info("Injecting configured value into field %s (config path %s)...", field.getName(), configPath);
+        EmberCore.logInjection("Injecting configured value into field %s (config path %s)...", field.getName(), configPath);
 
         Object codedValue = field.get(o);
-        Object configuredObject = pc.get(configPath, field.getType(), codedValue, true);
-        field.set(o, configuredObject);
+        Object configuredObject = pc.get(configPath, field, codedValue, true);
+            field.set(o, configuredObject);
 
-        boolean overwriteCollections = Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
-                .map(SerializationInfo::overwriteCollections)
-                .orElse(false);
-
-        EmberCore.info("Field %s has a default value of %s.", field.getName(), codedValue == null ? "null" :
+        EmberCore.logInjection("Field %s has a default value of %s.", field.getName(), codedValue == null ? "null" :
                 codedValue.toString());
-        EmberCore.info("  Configured value: %s %s", configuredObject == null ? "null" : configuredObject.toString(),
+        EmberCore.logInjection("  Configured value: %s %s", configuredObject == null ? "null" : configuredObject.toString(),
                 configuredObject == codedValue ? "(using default)" : "");
-        EmberCore.info("  Final value: %s", field.get(o));
     }
 
     public static void registerModule(JavaPlugin plugin, SimpleModule module) {
@@ -135,19 +137,27 @@ public final class ConfigInjector {
         MultiFormatObjectMapperWrapper mfomw = pluginObjectMappers.get(plugin);
         mfomw.jsonMapper.registerModule(module);
         mfomw.yamlMapper.registerModule(module);
+        mfomw.xmlMapper.registerModule(module);
     }
 
     /**
      * Contains {@link ObjectMapper}s configured for different file formats.
      */
     private static class MultiFormatObjectMapperWrapper {
-        private ObjectMapper yamlMapper, jsonMapper;
+        private ObjectMapper yamlMapper, jsonMapper, xmlMapper;
 
         public MultiFormatObjectMapperWrapper() {
-            yamlMapper = new ObjectMapper(new YAMLFactory());
+            yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
             yamlMapper.addMixIn(Vector.class, VectorMixIn.class);
+            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+
             jsonMapper = new ObjectMapper();
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
+            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+
+            xmlMapper = new XmlMapper();
+            xmlMapper.addMixIn(Vector.class, VectorMixIn.class);
+            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
         }
 
         public ObjectMapper getMapperFor(ConfigurationFormat configurationFormat) {
@@ -157,6 +167,8 @@ public final class ConfigInjector {
                     return yamlMapper;
                 case JSON:
                     return jsonMapper;
+                case XML:
+                    return xmlMapper;
             }
         }
     }

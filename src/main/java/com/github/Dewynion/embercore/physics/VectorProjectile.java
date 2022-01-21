@@ -2,7 +2,6 @@ package com.github.Dewynion.embercore.physics;
 
 import com.github.Dewynion.embercore.EmberCore;
 import com.github.Dewynion.embercore.geometry.Vectors;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;

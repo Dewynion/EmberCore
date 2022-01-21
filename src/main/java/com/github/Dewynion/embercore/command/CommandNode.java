@@ -1,6 +1,5 @@
 package com.github.Dewynion.embercore.command;
 
-import com.github.Dewynion.embercore.EmberCore;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;

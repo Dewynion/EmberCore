@@ -1,9 +1,14 @@
 package com.github.Dewynion.embercore.config;
 
+import com.github.Dewynion.embercore.config.formats.JsonPluginConfiguration;
+import com.github.Dewynion.embercore.config.formats.XmlPluginConfiguration;
+import com.github.Dewynion.embercore.config.formats.YamlPluginConfiguration;
+
 public enum ConfigurationFormat {
     TEXT("", null),
     YAML(".yml", YamlPluginConfiguration.class),
-    JSON(".json", JsonPluginConfiguration.class);
+    XML(".xml", XmlPluginConfiguration.class),
+    JSON(".json", JsonPluginConfiguration .class);
 
     String fileExtension;
     Class<? extends PluginConfiguration> configClass;

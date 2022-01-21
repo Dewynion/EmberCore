@@ -3,8 +3,6 @@ package com.github.Dewynion.embercore.listener;
 
 import com.github.Dewynion.embercore.CoreLoadPriority;
 import com.github.Dewynion.embercore.EmberCore;
-import com.github.Dewynion.embercore.config.serialization.SerializationInfo;
-import com.github.Dewynion.embercore.physics.ProjectilePreset;
 import com.github.Dewynion.embercore.reflection.PluginLoader;
 import com.github.Dewynion.embercore.reflection.annotations.OnEnable;
 import com.github.Dewynion.embercore.util.armorstand.ArmorStandUtil;

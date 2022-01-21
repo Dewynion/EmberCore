@@ -1,19 +1,13 @@
 package com.github.Dewynion.embercore.physics;
 
 import com.github.Dewynion.embercore.CoreLoadPriority;
-import com.github.Dewynion.embercore.EmberCore;
 import com.github.Dewynion.embercore.config.serialization.ExcludeFromSerialization;
 import com.github.Dewynion.embercore.config.serialization.SerializationInfo;
 import com.github.Dewynion.embercore.reflection.annotations.OnEnable;
-import com.github.Dewynion.embercore.reflection.annotations.AfterEnable;
 import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 
 
 @OnEnable(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
