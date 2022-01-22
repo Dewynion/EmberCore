@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.blufantasyonline</groupId>
-    <artifactId>Embercore</artifactId>
-    <version>1.1.0</version>
+    <artifactId>EmberCore</artifactId>
+    <version>1.1.1</version>
 
     <properties>
         <!-- Modify to set an output directory to which to copy the packaged .jar during the install phase. -->
