@@ -21,12 +21,13 @@ public final class PluginEventListener implements Listener {
     public void onPluginDisable(PluginDisableEvent event) {
         if (event.getPlugin() instanceof JavaPlugin) {
             JavaPlugin plugin = (JavaPlugin) event.getPlugin();
-            EmberCore.info("Plugin %s has been disabled. Clearing cached information.",
-                    plugin.getName());
-            if (PluginLoader.registered(plugin))
+            if (PluginLoader.registered(plugin)) {
+                EmberCore.info("Plugin %s has been disabled. Clearing cached information.",
+                        plugin.getName());
                 PluginLoader.remove(plugin);
-            if (ArmorStandUtil.registered(plugin))
-                ArmorStandUtil.removeAll(plugin);
+                if (ArmorStandUtil.registered(plugin))
+                    ArmorStandUtil.removeAll(plugin);
+            }
         }
     }
 }

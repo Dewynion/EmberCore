@@ -53,8 +53,9 @@ public abstract class PluginConfiguration {
 
     public final <T> T get(String path, Field field, Object defaultValue, boolean setIfNotFound) {
         TypeFactory typeFactory = TypeFactory.defaultInstance();
-        JavaType type = null;
+        JavaType type;
         EmberCore.logSerialization("Reading field: %s", field.getName());
+
         if (Map.class.isAssignableFrom(field.getType())) {
             Type[] mapTypes = ReflectionUtil.getMapTypes(field);
             assert mapTypes != null;
@@ -64,6 +65,7 @@ public abstract class PluginConfiguration {
             EmberCore.logSerialization("  Jackson type factory produced key and value pairs of %s, %s",
                     keyType.getTypeName(), valueType.getTypeName());
             type = typeFactory.constructMapType((Class<? extends Map>) field.getType(), keyType, valueType);
+
         } else if (Collection.class.isAssignableFrom(field.getType())) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
             Type collectionType = ReflectionUtil.getGenericType(field);
@@ -72,6 +74,7 @@ public abstract class PluginConfiguration {
             JavaType colType = typeFactory.constructType(collectionType);
             EmberCore.logSerialization("  Jackson type factory produced collection type %s", colType.getTypeName());
             type = typeFactory.constructCollectionType((Class<? extends Collection>) field.getType(), colType);
+
         } else {
             type = typeFactory.constructType(field.getType());
         }
