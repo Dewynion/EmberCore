@@ -1,4 +1,4 @@
-package dev.blufantasyonline.embercore.config.serialization.jackson.builtins;
+package dev.blufantasyonline.embercore.config.serialization.jackson.builtins.level;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;

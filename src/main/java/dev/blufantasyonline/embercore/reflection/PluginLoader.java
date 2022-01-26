@@ -33,7 +33,7 @@ public final class PluginLoader {
     public final static String CLASS_EXTENSION = ".class";
     public final static String PLUGIN_FILE_METHOD = "getFile";
     private final static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
-    private final static HashMap<JavaPlugin, Map<Class<?>, Object>> singletons;
+    private final static HashMap<JavaPlugin, LinkedHashMap<Class<?>, Object>> singletons;
     // I don't know why the above are "final static", I always write static final lmao
     private static final Set<SimpleModule> defaultModules;
 
@@ -267,7 +267,7 @@ public final class PluginLoader {
     private static void instantiateAll(JavaPlugin plugin, List<Class<?>> classes) {
         // map of all class to instance relations for this plugin
         if (!singletons.containsKey(plugin))
-            singletons.put(plugin, new HashMap<>());
+            singletons.put(plugin, new LinkedHashMap<>());
         Map<Class<?>, Object> singletonsForPlugin = singletons.get(plugin);
         classes.forEach(clz -> {
             try {

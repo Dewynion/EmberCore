@@ -1,10 +1,11 @@
 package dev.blufantasyonline.embercore.reflection;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -20,6 +21,7 @@ import org.bukkit.util.Vector;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Optional;
 
 public final class ConfigInjector {
@@ -133,6 +135,7 @@ public final class ConfigInjector {
         // slap that bad boy on there
         if (!parentNodePath.isEmpty())
             configPath = parentNodePath + "." + configPath;
+        configPath = configPath.toLowerCase();
 
         EmberCore.logInjection("Injecting configured value into field %s (config path %s)...", field.getName(), configPath);
 
@@ -165,17 +168,17 @@ public final class ConfigInjector {
         public MultiFormatObjectMapperWrapper() {
             yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
             yamlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             yamlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             jsonMapper = new ObjectMapper();
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
-            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             xmlMapper = new XmlMapper();
             xmlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             xmlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         }
 

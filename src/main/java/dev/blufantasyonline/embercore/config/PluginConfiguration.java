@@ -123,7 +123,6 @@ public abstract class PluginConfiguration {
             JsonNode node = traverseToParent(path, true);
             ((ObjectNode) node).putPOJO(fieldName, object);
         } catch (NullPointerException ex) {
-            EmberCore.warn(path);
             ex.printStackTrace();
         }
     }
@@ -211,7 +210,7 @@ public abstract class PluginConfiguration {
                 String currentPath = splitPath[i++];
                 JsonNode child = target.get(currentPath);
                 if (createNewNodes && !(child instanceof ObjectNode)) {
-                    //((ObjectNode) target).remove(currentPath);
+                    //ObjectNode tmp = child == null || child instanceof MissingNode ? null : child.deepCopy();
                     child = ((ObjectNode) target).putObject(currentPath);
                 }
                 target = child;

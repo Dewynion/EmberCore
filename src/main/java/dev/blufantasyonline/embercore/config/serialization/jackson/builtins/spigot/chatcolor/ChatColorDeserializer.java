@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
 import net.md_5.bungee.api.ChatColor;
 
@@ -19,24 +18,22 @@ public class ChatColorDeserializer extends StdDeserializer<ChatColor> {
     }
 
     @Override
-    public ChatColor deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+    public ChatColor deserialize(JsonParser jsonParser, DeserializationContext ctx) throws IOException {
         ObjectCodec codec = jsonParser.getCodec();
         JsonNode root = codec.readTree(jsonParser);
 
         try {
             return ChatColor.of(root.get("name").asText());
         } catch (IllegalArgumentException ex) {
+            Color color = ctx.readValue(root.get("color").traverse(), Color.class);
+            /*
             JsonNode color = root.get("color");
-            int red = root.get("red").asInt();
-            int green = root.get("green").asInt();
-            int blue = root.get("blue").asInt();
-            int alpha = root.get("alpha").asInt();
-            return ChatColor.of(new Color(red, green, blue, alpha));
+            int red = color.get("red").asInt();
+            int green = color.get("green").asInt();
+            int blue = color.get("blue").asInt();
+            int alpha = color.get("alpha").asInt();
+            */
+            return ChatColor.of(color);
         }
-    }
-
-    @Override
-    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException {
-        return super.deserializeWithType(p, ctxt, typeDeserializer);
     }
 }

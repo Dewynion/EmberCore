@@ -1,8 +1,9 @@
 package dev.blufantasyonline.embercore.util;
 
 import dev.blufantasyonline.embercore.EmberCore;
+import dev.blufantasyonline.embercore.reflection.ReflectionUtil;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.entity.Player;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -13,26 +14,36 @@ import java.util.regex.Pattern;
 public final class StringUtil {
     private final static int CENTER_PX = 154;
 
+    public static String fString(String s, Object object, Map<String, Object> data) {
+        return fString(s, object, data, ChatColor.GRAY, ChatColor.GRAY);
+    }
+
+    public static String fString(String s, Object object, Map<String, Object> data, ChatColor textColor, ChatColor elementColor) {
+        Map<String, Object> allData = ReflectionUtil.toMap(object);
+        allData.putAll(data);
+        return fString(s, data, textColor, elementColor);
+    }
+
     public static String fString(String s, Object obj) {
-        Map<String, Object> data = new HashMap<>();
-        try {
-            for (Field field : obj.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                data.put(field.getName(), field.get(obj));
-            }
-        } catch (IllegalAccessException ex) {
-            EmberCore.warn("Unable to access fields for type %s while reflectively populating fstring.", obj.getClass().getName());
-        }
-        return fString(s, data);
+        return fString(s, obj, ChatColor.GRAY, ChatColor.GRAY);
+    }
+
+    public static String fString(String s, Object obj, ChatColor textColor, ChatColor elementColor) {
+        return fString(s, ReflectionUtil.toMap(obj), textColor, elementColor);
     }
 
     public static String fString(String s, Map<String, Object> data) {
+        return fString(s, data, ChatColor.GRAY, ChatColor.GRAY);
+    }
+
+    public static String fString(String s, Map<String, Object> data, ChatColor textColor, ChatColor elementColor) {
         Matcher matcher = Pattern.compile("\\{(.*?)\\}").matcher(s);
 
         while (matcher.find()) {
             Object value = data.get(matcher.group(1));
             if (value != null) {
-                s = s.replace(matcher.group(0), value.toString());
+
+                s = s.replace(matcher.group(0), elementColor + value.toString() + textColor);
             }
         }
 

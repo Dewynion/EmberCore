@@ -1,6 +1,7 @@
 package dev.blufantasyonline.embercore.reflection;
 
 import dev.blufantasyonline.embercore.EmberCore;
+import dev.blufantasyonline.embercore.util.ErrorUtil;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -8,9 +9,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -76,5 +75,18 @@ public final class ReflectionUtil {
             }
         }
         return classes;
+    }
+
+    public static Map<String, Object> toMap(Object o) {
+        Map<String, Object> data = new HashMap<>();
+        try {
+            for (Field field : o.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                data.put(field.getName(), field.get(o));
+            }
+        } catch (IllegalAccessException ex) {
+            ErrorUtil.warn(ex.getMessage());
+        }
+        return data;
     }
 }

@@ -1,4 +1,4 @@
-package dev.blufantasyonline.embercore.config.serialization.jackson.builtins;
+package dev.blufantasyonline.embercore.config.serialization.jackson.builtins.level;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
