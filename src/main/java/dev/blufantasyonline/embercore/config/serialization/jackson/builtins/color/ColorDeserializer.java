@@ -20,10 +20,15 @@ public class ColorDeserializer extends StdDeserializer<Color> {
     public Color deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         ObjectCodec codec = jsonParser.getCodec();
         JsonNode root = codec.readTree(jsonParser);
-        int red = root.get("red").asInt();
-        int green = root.get("green").asInt();
-        int blue = root.get("blue").asInt();
-        int alpha = root.get("alpha").asInt();
+        int red, green, blue, alpha;
+        red = green = blue = 0;
+        alpha = 255;
+        try {
+            red = root.get("red").asInt();
+            green = root.get("green").asInt();
+            blue = root.get("blue").asInt();
+            alpha = root.get("alpha").asInt();
+        } catch (Exception ignored) { }
         return new Color(red, green, blue, alpha);
     }
 }

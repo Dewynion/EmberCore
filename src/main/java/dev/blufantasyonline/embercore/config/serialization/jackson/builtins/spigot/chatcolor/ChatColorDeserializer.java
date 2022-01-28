@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import dev.blufantasyonline.embercore.EmberCore;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
 import net.md_5.bungee.api.ChatColor;
 
@@ -23,17 +24,22 @@ public class ChatColorDeserializer extends StdDeserializer<ChatColor> {
         JsonNode root = codec.readTree(jsonParser);
 
         try {
-            return ChatColor.of(root.get("name").asText());
-        } catch (IllegalArgumentException ex) {
-            Color color = ctx.readValue(root.get("color").traverse(), Color.class);
-            /*
-            JsonNode color = root.get("color");
-            int red = color.get("red").asInt();
-            int green = color.get("green").asInt();
-            int blue = color.get("blue").asInt();
-            int alpha = color.get("alpha").asInt();
-            */
-            return ChatColor.of(color);
+            String name = root.get("name").asText();
+            try {
+                return ChatColor.of(name);
+            } catch (IllegalArgumentException ex) {
+                try {
+                    EmberCore.info("Couldn't parse chat color with name '%s', attempting creation from RGBA.", name);
+                    Color color = ctx.readValue(root.get("color").traverse(), Color.class);
+                    return ChatColor.of(color);
+                } catch (IllegalArgumentException ex2) {
+                    EmberCore.warn("RGBA color couldn't be read. Using default.");
+                    return ChatColor.GRAY;
+                }
+            }
+        } catch (NullPointerException ex) {
+            EmberCore.warn("ChatColor not found. Using default.");
+            return ChatColor.GRAY;
         }
     }
 }

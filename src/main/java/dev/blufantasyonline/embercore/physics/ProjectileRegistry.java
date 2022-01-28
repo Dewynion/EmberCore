@@ -1,6 +1,5 @@
 package dev.blufantasyonline.embercore.physics;
 
-import dev.blufantasyonline.embercore.CoreLoadPriority;
 import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
@@ -10,9 +9,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 
 
-@OnEnable(priority = CoreLoadPriority.PROJECTILE_REGISTRY_PRIORITY)
+@OnEnable
 public final class ProjectileRegistry {
-
     private static int maxProjectiles = 1000;
 
     @SerializationInfo(filename = "projectile-presets.yml")

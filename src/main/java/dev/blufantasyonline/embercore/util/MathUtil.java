@@ -1,17 +1,20 @@
 package dev.blufantasyonline.embercore.util;
 
 import dev.blufantasyonline.embercore.EmberCore;
-import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public final class MathUtil {
-    public static long MS_TO_TICKS_CONVERSION = 50L;
+    public static long MS_TICKS_FACTOR = 50L;
 
     public static int msToTicks(long ms) {
-        return (int) (ms / MS_TO_TICKS_CONVERSION);
+        return (int) (Math.max(1, ms / MS_TICKS_FACTOR));
+    }
+
+    public static long ticksToMs(int ticks) {
+        return ticks * MS_TICKS_FACTOR;
     }
 
     public static <T extends Number & Comparable> T clamp(T val, T min, T max) {

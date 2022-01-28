@@ -9,7 +9,7 @@ public final class ErrorUtil {
     }
 
     public static StackTraceElement getCurrentMethod() {
-        return getCurrentMethod(2);
+        return getCurrentMethod(3);
     }
 
     public static StackTraceElement getCurrentMethod(int depth) throws NullPointerException {

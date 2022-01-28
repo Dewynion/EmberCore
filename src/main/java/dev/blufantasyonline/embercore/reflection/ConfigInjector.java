@@ -2,10 +2,9 @@ package dev.blufantasyonline.embercore.reflection;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -15,13 +14,13 @@ import dev.blufantasyonline.embercore.config.ConfigurationFormat;
 import dev.blufantasyonline.embercore.config.PluginConfiguration;
 import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
+import dev.blufantasyonline.embercore.reflection.annotations.Inject;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Optional;
 
 public final class ConfigInjector {
@@ -82,7 +81,8 @@ public final class ConfigInjector {
             try {
                 field.setAccessible(true);
                 // TODO: remove ExcludeFromSerialization in future
-                if (field.isAnnotationPresent(JsonIgnore.class) || field.isAnnotationPresent(ExcludeFromSerialization.class))
+                if (field.isAnnotationPresent(JsonIgnore.class) || field.isAnnotationPresent(ExcludeFromSerialization.class)
+                        || field.isAnnotationPresent(Inject.class))
                     continue;
                 // get the config file
                 String filename = typeDefaultConfigFilename;
@@ -166,17 +166,20 @@ public final class ConfigInjector {
         private ObjectMapper yamlMapper, jsonMapper, xmlMapper;
 
         public MultiFormatObjectMapperWrapper() {
-            yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+            yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             yamlMapper.addMixIn(Vector.class, VectorMixIn.class);
             yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             yamlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            jsonMapper = new ObjectMapper();
+            jsonMapper = new ObjectMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
             jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            xmlMapper = new XmlMapper();
+            xmlMapper = new XmlMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             xmlMapper.addMixIn(Vector.class, VectorMixIn.class);
             xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             xmlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

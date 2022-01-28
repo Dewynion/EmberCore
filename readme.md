@@ -2,6 +2,8 @@
 
 A [Spigot](https://www.spigotmc.org/) plugin and library designed to help streamline the development process.
 
+**Support:** https://discord.gg/yZAy7wbm8v
+
 ## Features
 - No more manual setup of Bukkit Listeners, data classes, etc. - just annotate these classes with `@OnEnable` and
   let EmberCore handle the rest with a single method call.
@@ -36,8 +38,13 @@ number of custom projectiles.
 
 # Getting Started
 ## Installation
-Either [download a release](https://github.com/Blu-Fantasy-Online/EmberCore/releases) or install via Maven by adding
-the following dependency to your POM:
+
+**Issue:** Github repositories are currently having a stroke due to an organization change. Until further notice, 
+please install by cloning from source and running `mvn install` on the repository to install it locally.
+I apologize for the inconvenience.
+
+~~Either [download a release](https://github.com/Blu-Fantasy-Online/EmberCore/releases) or install via Maven by adding
+the following dependency to your POM:~~
 ```xml
 <dependency>
     <groupId>com.github.dewynion</groupId>
@@ -271,6 +278,9 @@ provides a bare-bones framework for creating command trees.
 
 **Upcoming:** A command handler that, like the rest of the library, uses annotated classes to automate certain
 functionality - in this case, setting up a robust command tree.
+
+### Sequences
+
 
 ### Other Utility
 [MovingParticle](https://github.com/Dewynion/EmberCore/blob/master/src/main/java/com/github/Dewynion/embercore/util/MovingParticle.java)

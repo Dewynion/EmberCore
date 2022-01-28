@@ -109,6 +109,7 @@ public abstract class PluginConfiguration {
                 set(path, defaultValue);
             }
         } catch (IllegalArgumentException ex) {
+            EmberCore.warn("Illegal argument exception for config path '%s' (type %s).", path, type);
             ex.printStackTrace();
         }
         return (T) defaultValue;

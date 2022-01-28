@@ -5,10 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- *  Specifies that a method should be run after all classes are loaded and have their fields injected into.
- */
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface AfterEnable {
+public @interface Depend {
+    Class<?>[] value() default {};
 }
