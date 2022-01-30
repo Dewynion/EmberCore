@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.blufantasyonline</groupId>
-    <artifactId>EmberCore</artifactId>
-    <version>1.1.1</version>
+    <artifactId>Embercore</artifactId>
+    <version>1.2.0</version>
 
     <properties>
         <!-- Modify to set an output directory to which to copy the packaged .jar during the install phase. -->
@@ -74,8 +74,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -90,7 +90,7 @@
                         </goals>
                         <configuration>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
                         </configuration>
                     </execution>
                 </executions>
@@ -115,7 +115,6 @@
                                     <type>${project.packaging}</type>
                                 </artifactItem>
                             </artifactItems>
-                            <overWrite>true</overWrite>
                             <outputDirectory>${output.dir}</outputDirectory>
                         </configuration>
                     </execution>
@@ -127,8 +126,8 @@
     <distributionManagement>
         <repository>
             <id>github</id>
-            <name>GitHub Dewynion Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/Dewynion/EmberCore</url>
+            <name>GitHub Blu-Fantasy-Online Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/Blu-Fantasy-Online/Embercore</url>
         </repository>
     </distributionManagement>
 </project>

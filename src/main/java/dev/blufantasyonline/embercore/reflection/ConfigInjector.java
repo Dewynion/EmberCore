@@ -1,8 +1,10 @@
 package dev.blufantasyonline.embercore.reflection;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -12,6 +14,7 @@ import dev.blufantasyonline.embercore.config.ConfigurationFormat;
 import dev.blufantasyonline.embercore.config.PluginConfiguration;
 import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
+import dev.blufantasyonline.embercore.reflection.annotations.Inject;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -42,6 +45,10 @@ public final class ConfigInjector {
     }
 
     public static void injectIntoObject(JavaPlugin plugin, Object o, File file) {
+        injectIntoObject(plugin, o, file, "");
+    }
+
+    public static void injectIntoObject(JavaPlugin plugin, Object o, File file, String parentPath) {
         File dataFolder = plugin.getDataFolder();
         if (!pluginConfigurations.containsKey(plugin))
             pluginConfigurations.put(plugin, new HashMap<>());
@@ -60,13 +67,22 @@ public final class ConfigInjector {
                 .map(SerializationInfo::filename)
                 .orElse(DEFAULT_CONFIG_FILE);
 
+        StringBuilder parentNodePathSb = new StringBuilder(parentPath);
+        Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
+                .filter(info -> info.path().length() > 0)
+                .stream().findFirst()
+                .ifPresent(info -> parentNodePathSb.append(info.path()).append("."));
+        String parentNodePath = parentNodePathSb.toString();
+
         EmberCore.logInjection("Injecting configured values into object of type %s.", o.getClass().getName());
         EmberCore.logInjection("Filename for this object: %s", typeDefaultConfigFilename);
 
         for (Field field : objectClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                if (field.isAnnotationPresent(ExcludeFromSerialization.class))
+                // TODO: remove ExcludeFromSerialization in future
+                if (field.isAnnotationPresent(JsonIgnore.class) || field.isAnnotationPresent(ExcludeFromSerialization.class)
+                        || field.isAnnotationPresent(Inject.class))
                     continue;
                 // get the config file
                 String filename = typeDefaultConfigFilename;
@@ -81,9 +97,8 @@ public final class ConfigInjector {
                 File configFile = file != null ? file : new File(dataFolder, filename);
                 String configFileName = configFile.getAbsolutePath();
 
-                // Optional.ofNullable was returning null here, so back to the classic method we go
                 if (!configs.containsKey(configFileName)) {
-                    EmberCore.logInjection("Reading configuration file: %s", configFileName);
+                    EmberCore.info("Attempting to create plugin configuration from file %s", configFileName);
                     configs.put(configFileName, PluginConfiguration.create(configFile, plugin));
                 }
                 PluginConfiguration configuration = configs.get(configFileName);
@@ -94,7 +109,7 @@ public final class ConfigInjector {
                     continue;
                 }
 
-                injectIntoField(field, o, configuration);
+                injectIntoField(field, o, configuration, parentNodePath);
 
                 configuration.saveConfiguration();
             } catch (IllegalAccessException ex) {
@@ -105,22 +120,28 @@ public final class ConfigInjector {
     }
 
     public static <T> void injectIntoField(Field field, Object o, PluginConfiguration pc) throws IllegalAccessException {
+        injectIntoField(field, o, pc, "");
+    }
+
+    public static <T> void injectIntoField(Field field, Object o, PluginConfiguration pc, String parentNodePath) throws IllegalAccessException {
         // path to follow through config - use the path in SerializationInfo or just start from the root element
         String configPath = Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
                 .map(SerializationInfo::path)
-                .orElse("").toLowerCase();
+                .orElse("");
 
-        // default for SerializationInfo is "", so if it's unset or the annotation just isn't present,
-        // configPath will be an empty string
-        // this is a lot easier to comprehend than trying to chain together a bunch of stream statements
-        // to achieve the same result
-        if (configPath.equalsIgnoreCase(""))
-            configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE)).toLowerCase();
+        if (configPath.isEmpty())
+            configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE));
+
+        // slap that bad boy on there
+        if (!parentNodePath.isEmpty())
+            configPath = parentNodePath + "." + configPath;
+        configPath = configPath.toLowerCase();
+
         EmberCore.logInjection("Injecting configured value into field %s (config path %s)...", field.getName(), configPath);
 
         Object codedValue = field.get(o);
         Object configuredObject = pc.get(configPath, field, codedValue, true);
-            field.set(o, configuredObject);
+        field.set(o, configuredObject);
 
         EmberCore.logInjection("Field %s has a default value of %s.", field.getName(), codedValue == null ? "null" :
                 codedValue.toString());
@@ -145,17 +166,23 @@ public final class ConfigInjector {
         private ObjectMapper yamlMapper, jsonMapper, xmlMapper;
 
         public MultiFormatObjectMapperWrapper() {
-            yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+            yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             yamlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            yamlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            jsonMapper = new ObjectMapper();
+            jsonMapper = new ObjectMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
-            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            xmlMapper = new XmlMapper();
+            xmlMapper = new XmlMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             xmlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            xmlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         }
 
         public ObjectMapper getMapperFor(ConfigurationFormat configurationFormat) {
@@ -174,14 +201,19 @@ public final class ConfigInjector {
     private interface VectorMixIn {
         @JsonIgnore
         void setX(float x);
+
         @JsonIgnore
         void setY(float y);
+
         @JsonIgnore
         void setZ(float z);
+
         @JsonIgnore
         void setX(int x);
+
         @JsonIgnore
         void setY(int y);
+
         @JsonIgnore
         void setZ(int z);
     }

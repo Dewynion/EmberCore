@@ -53,8 +53,9 @@ public abstract class PluginConfiguration {
 
     public final <T> T get(String path, Field field, Object defaultValue, boolean setIfNotFound) {
         TypeFactory typeFactory = TypeFactory.defaultInstance();
-        JavaType type = null;
+        JavaType type;
         EmberCore.logSerialization("Reading field: %s", field.getName());
+
         if (Map.class.isAssignableFrom(field.getType())) {
             Type[] mapTypes = ReflectionUtil.getMapTypes(field);
             assert mapTypes != null;
@@ -64,6 +65,7 @@ public abstract class PluginConfiguration {
             EmberCore.logSerialization("  Jackson type factory produced key and value pairs of %s, %s",
                     keyType.getTypeName(), valueType.getTypeName());
             type = typeFactory.constructMapType((Class<? extends Map>) field.getType(), keyType, valueType);
+
         } else if (Collection.class.isAssignableFrom(field.getType())) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
             Type collectionType = ReflectionUtil.getGenericType(field);
@@ -72,6 +74,7 @@ public abstract class PluginConfiguration {
             JavaType colType = typeFactory.constructType(collectionType);
             EmberCore.logSerialization("  Jackson type factory produced collection type %s", colType.getTypeName());
             type = typeFactory.constructCollectionType((Class<? extends Collection>) field.getType(), colType);
+
         } else {
             type = typeFactory.constructType(field.getType());
         }
@@ -106,6 +109,7 @@ public abstract class PluginConfiguration {
                 set(path, defaultValue);
             }
         } catch (IllegalArgumentException ex) {
+            EmberCore.warn("Illegal argument exception for config path '%s' (type %s).", path, type);
             ex.printStackTrace();
         }
         return (T) defaultValue;
@@ -120,7 +124,6 @@ public abstract class PluginConfiguration {
             JsonNode node = traverseToParent(path, true);
             ((ObjectNode) node).putPOJO(fieldName, object);
         } catch (NullPointerException ex) {
-            EmberCore.warn(path);
             ex.printStackTrace();
         }
     }
@@ -208,7 +211,7 @@ public abstract class PluginConfiguration {
                 String currentPath = splitPath[i++];
                 JsonNode child = target.get(currentPath);
                 if (createNewNodes && !(child instanceof ObjectNode)) {
-                    //((ObjectNode) target).remove(currentPath);
+                    //ObjectNode tmp = child == null || child instanceof MissingNode ? null : child.deepCopy();
                     child = ((ObjectNode) target).putObject(currentPath);
                 }
                 target = child;

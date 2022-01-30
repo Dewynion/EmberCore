@@ -17,6 +17,8 @@ public final class CosmeticArmorStand {
         armorStand = location.getWorld().spawn(location, ArmorStand.class);
         armorStand.setInvisible(true);
         armorStand.setInvulnerable(true);
+        armorStand.setGravity(false);
+        armorStand.setCollidable(false);
     }
 
     public JavaPlugin getOwningPlugin() {

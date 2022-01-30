@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import dev.blufantasyonline.embercore.CoreSettings;
 import dev.blufantasyonline.embercore.EmberCore;
+import dev.blufantasyonline.embercore.command.CommandHandler;
+import dev.blufantasyonline.embercore.command.CommandRunner;
 import dev.blufantasyonline.embercore.config.serialization.jackson.SimpleModuleBuilder;
 import dev.blufantasyonline.embercore.config.serialization.jackson.TypedKeyDeserializer;
-import dev.blufantasyonline.embercore.reflection.annotations.AfterEnable;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
-import dev.blufantasyonline.embercore.reflection.annotations.Preload;
+import dev.blufantasyonline.embercore.reflection.annotations.*;
 import dev.blufantasyonline.embercore.util.ErrorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -19,10 +19,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,8 +31,9 @@ import java.util.zip.ZipFile;
 public final class PluginLoader {
     public final static String CLASS_EXTENSION = ".class";
     public final static String PLUGIN_FILE_METHOD = "getFile";
+    private static final int COMMAND_TREE_SPACE_DEPTH = 2;
     private final static HashMap<JavaPlugin, List<Class<? extends Object>>> assemblies;
-    private final static HashMap<JavaPlugin, Map<Class<?>, Object>> singletons;
+    private final static HashMap<JavaPlugin, LinkedHashMap<Class<?>, Object>> singletons;
     // I don't know why the above are "final static", I always write static final lmao
     private static final Set<SimpleModule> defaultModules;
 
@@ -105,6 +105,7 @@ public final class PluginLoader {
 
     /**
      * Reflectively retrieves a plugin's .jar file from the plugins folder.
+     *
      * @param plugin An instance of a Spigot plugin.
      * @return The provided plugin's packaged .jar file.
      */
@@ -131,10 +132,6 @@ public final class PluginLoader {
      * Retrieves the assembly for the given {@link JavaPlugin} via {@link #getAllClasses(JavaPlugin)},
      * then instantiates any classes tagged with it.
      * <p>
-     * Classes with a lower {@link OnEnable#priority()} are
-     * loaded first - priority 1 is loaded before priority 2, etc. This allows developers to ensure that one class
-     * (e.g. a class for managing custom entities) consistently loads before another (e.g. a listener that creates
-     * custom entities in place of vanilla spawns).
      *
      * @param plugin The plugin to load for.
      * @param reload If false, will return the precached list of Singletons or load them if they have not
@@ -150,16 +147,25 @@ public final class PluginLoader {
 
     /**
      * Attempts to retrieve a single-instance class of the specified Java type.
-     * @param plugin The plugin that registered the class. If the plugin is not loaded,
-     *        it will be loaded first.
+     *
+     * @param plugin         The plugin that registered the class. If the plugin is not loaded,
+     *                       it will be loaded first.
      * @param singletonClass The class to search for an instance of.
-     * @param <T> The type of the requested class.
+     * @param <T>            The type of the requested class.
      * @return Either the registered single instance of the class, or null if not found.
      */
     public static <T> T getSingleton(JavaPlugin plugin, Class<T> singletonClass) {
         if (!singletons.containsKey(plugin))
             load(plugin);
         return (T) singletons.get(plugin).get(singletonClass);
+    }
+
+    public static <T> T getSingleton(Class<T> singletonClass) {
+        for (Map<Class<?>, Object> singletonMap : singletons.values()) {
+            if (singletonMap.containsKey(singletonClass))
+                return (T) singletonMap.get(singletonClass);
+        }
+        return null;
     }
 
     //===========================================================================================================
@@ -170,19 +176,20 @@ public final class PluginLoader {
                                                     Comparator<? super Class<?>> sortCondition) {
         Stream<Class<?>> stream = list.stream().filter(clz -> clz.isAnnotationPresent(annotation));
         if (sortCondition != null)
-                stream = stream.sorted(sortCondition);
+            return stream.sorted(sortCondition).collect(Collectors.toList());
         return stream.collect(Collectors.toList());
     }
 
     private static Map<Class<?>, Method> filterMethods(List<Class<?>> list, Class<? extends Annotation> annotation,
                                                        Comparator<? super Method> comparator) {
-        Map<Class<?>, Method> map = new HashMap<>();
+        LinkedHashMap<Class<?>, Method> map = new LinkedHashMap<>();
         list.forEach(clz -> {
                     try {
-                        Arrays.stream(clz.getDeclaredMethods())
-                                .filter(method -> method.isAnnotationPresent(annotation))
-                                .sorted(comparator)
-                                .forEach(method -> {
+                        Stream<Method> methods = Arrays.stream(clz.getDeclaredMethods())
+                                .filter(method -> method.isAnnotationPresent(annotation));
+                        if (comparator != null)
+                                methods = methods.sorted(comparator);
+                        methods.forEach(method -> {
                                     method.setAccessible(true);
                                     map.put(clz, method);
                                 });
@@ -201,7 +208,7 @@ public final class PluginLoader {
             // grab all plugin classes
             List<Class<?>> assembly = getAllClasses(plugin);
 
-            // handle preloads (essential configs, etc.) first.
+            // handle preloads first if anyone really wants to shove these in here
             List<Class<?>> preload = filterAnnotations(assembly, Preload.class, null);
             EmberCore.info("Preloading plugin %s...", plugin.getName());
 
@@ -223,36 +230,43 @@ public final class PluginLoader {
                 ConfigInjector.injectIntoObject(plugin, obj);
             });
 
-            Level level = CoreSettings.coreLogSettings.logLevel;
-            EmberCore.info("Your log level is set to %s.", level.toString());
-            // Level is not an enum, so it's time to pull a YandereDev
-            if (level.equals(Level.OFF))
-                EmberCore.info("This will disable logging entirely, but will not stop critical errors from printing to console.");
-            else if (level.equals(Level.INFO))
-                EmberCore.info("This will produce a significant quantity of messages - set your log level to OFF, WARNING or SEVERE to disable this.");
-            EmberCore.getInstance().getLogger().setLevel(level);
+            if (plugin == EmberCore.getInstance()) {
+                Level level = CoreSettings.coreLogSettings.logLevel;
+                EmberCore.info("Your log level is set to %s.", level.toString());
+                // Level is not an enum, so it's time to pull a YandereDev
+                if (level.equals(Level.OFF))
+                    EmberCore.info("This will disable logging entirely, but will not stop critical errors from printing to console.");
+                else if (level.equals(Level.INFO))
+                    EmberCore.info("This will produce a significant quantity of messages - set your log level to OFF, WARNING or SEVERE to disable this.");
+                EmberCore.getInstance().getLogger().setLevel(level);
+            }
 
             // first we figure out which classes are loaded and cached
-            List<Class<?>> onEnable = filterAnnotations(assembly, OnEnable.class,
-                    Comparator.comparingInt(clz -> clz.getAnnotation(OnEnable.class).priority()));
-            // then any methods they run
-            Map<Class<?>, Method> onEnableMethods = filterMethods(onEnable, OnEnable.class,
-                    Comparator.comparingInt(method -> method.getAnnotation(OnEnable.class).priority()));
+            List<Class<?>> onEnable = filterAnnotations(assembly, OnEnable.class, null);
 
             EmberCore.info("Loading plugin %s...", plugin.getName());
             EmberCore.info("Instantiating singletons...");
             instantiateAll(plugin, onEnable);
+
+            EmberCore.info("Calculating dependencies...");
+            onEnable = byDependencies(plugin, onEnable);
+
+            // then any methods they run
+            Map<Class<?>, Method> onEnableMethods = filterMethods(onEnable, OnEnable.class, null);
+
             EmberCore.info("Running on-enable methods...");
             runAll(plugin, onEnableMethods);
 
             // inject configuration-related values.
-            EmberCore.info("Injecting values...");
+            EmberCore.info("Injecting configured values...");
             singletons.get(plugin).values().forEach(obj -> {
                 ConfigInjector.injectIntoObject(plugin, obj);
             });
 
-            Map<Class<?>, Method> afterEnableMethods = filterMethods(onEnable, AfterEnable.class,
-                    Comparator.comparingInt(method -> method.getAnnotation(AfterEnable.class).priority()));
+            EmberCore.info("Assembling command tree...");
+            setupCommands(plugin);
+
+            Map<Class<?>, Method> afterEnableMethods = filterMethods(onEnable, AfterEnable.class, null);
 
             EmberCore.info("Running after-enable methods...");
             runAll(plugin, afterEnableMethods);
@@ -264,10 +278,131 @@ public final class PluginLoader {
         }
     }
 
+    private static ArrayList<Class<?>> byDependencies(JavaPlugin plugin, List<Class<?>> input) {
+        ArrayList<Class<?>> byDependencies = new ArrayList<>();
+        Map<Class<?>, Set<Class<?>>> dependencyMap = new HashMap<>();
+        // not sure how necessary this is but reverse index mapping go brr
+        Map<Class<?>, Integer> indexMap = new HashMap<>();
+        AtomicInteger index = new AtomicInteger(0);
+
+        // build dependency map
+        input.forEach(clz -> {
+            byDependencies.add(clz);
+            indexMap.put(clz, index.getAndIncrement());
+            dependencyMap.put(clz, new HashSet<>());
+            Set<Class<?>> dependencies = dependencyMap.get(clz);
+            if (clz.isAnnotationPresent(Depend.class))
+                dependencies.addAll(Arrays.asList(clz.getAnnotation(Depend.class).value()));
+
+            Object instance = getSingleton(plugin, clz);
+            for (Field field : clz.getDeclaredFields()) {
+                if (!field.isAnnotationPresent(Inject.class))
+                    continue;
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+
+                // add dependency
+                dependencies.add(fieldType);
+
+                // actually inject
+                Object targetInstance = getSingleton(fieldType);
+                if (instance == null && !Modifier.isStatic(field.getModifiers()))
+                    EmberCore.warn("No singleton of type %s exists to inject into non-static field %s.",
+                            clz.getName(), field.getName());
+                else if (targetInstance == null)
+                    EmberCore.warn("Field %s in class %s is of type %s, but no such singleton exists across all plugins. Did you forget a dependency?",
+                            field.getName(), clz.getName(), fieldType.getName());
+                else {
+                    EmberCore.logInjection("  Injecting singleton of type %s into field %s (class %s)...",
+                            fieldType.getName(), field.getName(), clz.getName());
+                    EmberCore.logInjection("    ...Success!");
+                    try {
+                        field.set(instance, targetInstance);
+                    } catch (IllegalAccessException e) {
+                        EmberCore.warn("    Illegal access exception encountered during injection: %s", e.getMessage());
+                    }
+                }
+            }
+        });
+
+        // flag to determine if the list is sorted
+        boolean sorted;
+        do {
+            // assume sorted at start
+            sorted = true;
+            // go through the list
+            for (int i = 0; i < byDependencies.size(); i++) {
+                Class<?> clz = byDependencies.get(i);
+                // for all dependencies of this element
+                for (Class<?> dep : dependencyMap.get(clz)) {
+                    // ignore circular dependencies so we don't end up stuck in an infinite loop
+                    if (dependencyMap.get(dep).contains(clz))
+                        continue;
+                    // grab the cached index of this dependency
+                    int otherIndex = indexMap.get(dep);
+                    // if it's set to load after this element,
+                    if (otherIndex > i) {
+                        // swap them
+                        byDependencies.set(i, dep);
+                        byDependencies.set(otherIndex, clz);
+                        // and make sure to update the index cache to reflect the new indices
+                        indexMap.put(dep, i);
+                        indexMap.put(clz, otherIndex);
+                        sorted = false;
+                    }
+                }
+            }
+        } while (!sorted);
+
+        EmberCore.info("Dynamically determined load order:");
+        byDependencies.forEach(clz -> EmberCore.info("  %s", clz.getName()));
+
+        return byDependencies;
+    }
+
+    private static void setupCommands(JavaPlugin plugin) {
+        Set<CommandRunner> commands = getCommandStream(plugin).collect(Collectors.toSet());
+        if (commands.size() == 0) {
+            EmberCore.info("  Plugin %s has no recognized commands. Skipping.", plugin.getName());
+            return;
+        }
+
+        commands.forEach(cmd -> {
+                    if (cmd.isRoot()) {
+                        EmberCore.info("  Found root command: %s", cmd.getIdentifier());
+                        CommandHandler.addRootCommand(plugin, cmd);
+                    } else {
+                        cmd.setParent(getSingleton(plugin, cmd.getParentClass()));
+                        EmberCore.info("    Found leaf command: %s (parent %s)", cmd.getIdentifier(),
+                                cmd.getParentClass().getSimpleName());
+                    }
+                }
+        );
+
+        // because stream consume
+        EmberCore.info("Command tree:");
+        commands.stream()
+                .filter(CommandRunner::isRoot)
+                .forEach(cmd -> printChildren(cmd, COMMAND_TREE_SPACE_DEPTH));
+    }
+
+    private static Stream<CommandRunner> getCommandStream(JavaPlugin plugin) {
+        return singletons.get(plugin).values().stream()
+                .filter(obj -> obj instanceof CommandRunner)
+                .map(obj -> (CommandRunner) obj);
+    }
+
+    private static void printChildren(CommandRunner cmd, int depth) {
+        EmberCore.info("%s%s", new String(new char[depth]).replace("\0", " "),
+                cmd.getIdentifier());
+        for (CommandRunner child : cmd.getChildren())
+            printChildren(child, depth + COMMAND_TREE_SPACE_DEPTH);
+    }
+
     private static void instantiateAll(JavaPlugin plugin, List<Class<?>> classes) {
         // map of all class to instance relations for this plugin
         if (!singletons.containsKey(plugin))
-            singletons.put(plugin, new HashMap<>());
+            singletons.put(plugin, new LinkedHashMap<>());
         Map<Class<?>, Object> singletonsForPlugin = singletons.get(plugin);
         classes.forEach(clz -> {
             try {
@@ -280,28 +415,28 @@ public final class PluginLoader {
                     if (plugin.equals(EmberCore.getInstance()))
                         defaultModules.add(serializerModule);
 
-                // ========================================================================
-                // Or deserializers. Can't be both, so else is fine.
-                // TODO: A more "friendly" serialization system that uses Spigot stuff (MemorySections, etc.) so that
-                //       folks don't have to learn Jackson in order to use EmberCore.
-                // ========================================================================
+                    // ========================================================================
+                    // Or deserializers. Can't be both, so else is fine.
+                    // TODO: A more "friendly" serialization system that uses Spigot stuff (MemorySections, etc.) so that
+                    //       folks don't have to learn Jackson in order to use EmberCore.
+                    // ========================================================================
                 } else if (JsonDeserializer.class.isAssignableFrom(clz)) {
                     SimpleModule deserializerModule = SimpleModuleBuilder.deserializerModule((Class<? extends JsonDeserializer>) clz);
                     ConfigInjector.registerModule(plugin, deserializerModule);
                     if (plugin.equals(EmberCore.getInstance()))
                         defaultModules.add(deserializerModule);
 
-                // ========================================================================
-                // Register key deserializers.
-                // ========================================================================
+                    // ========================================================================
+                    // Register key deserializers.
+                    // ========================================================================
                 } else if (TypedKeyDeserializer.class.isAssignableFrom(clz)) {
                     SimpleModule keyModule = SimpleModuleBuilder.keyDeserializerModule((Class<? extends TypedKeyDeserializer>) clz);
                     ConfigInjector.registerModule(plugin, keyModule);
                     if (plugin.equals(EmberCore.getInstance()))
                         defaultModules.add(keyModule);
-                // ========================================================================
-                // Register totally normal classes, including listeners.
-                // ========================================================================
+                    // ========================================================================
+                    // Register totally normal classes, including listeners.
+                    // ========================================================================
                 } else {
                     EmberCore.info("Attempting to create singleton class %s...",
                             clz.getName());

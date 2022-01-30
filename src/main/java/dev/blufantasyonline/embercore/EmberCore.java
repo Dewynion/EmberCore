@@ -8,6 +8,8 @@ import java.util.logging.Level;
 public final class EmberCore extends JavaPlugin {
     public static final String CONFIG_KEY = "config";
 
+    public static int serverTickrate = 20;
+
     private Level logLevel = Level.INFO;
 
     private static EmberCore instance;

@@ -3,9 +3,9 @@ package dev.blufantasyonline.embercore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dev.blufantasyonline.embercore.config.serialization.jackson.builtins.LevelDeserializer;
+import dev.blufantasyonline.embercore.config.serialization.jackson.builtins.level.LevelDeserializer;
+import dev.blufantasyonline.embercore.config.serialization.jackson.builtins.level.LevelSerializer;
 import dev.blufantasyonline.embercore.reflection.annotations.Preload;
-import dev.blufantasyonline.embercore.config.serialization.jackson.builtins.LevelSerializer;
 
 import java.util.logging.Level;
 
