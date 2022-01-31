@@ -5,7 +5,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master, github-automation ]
+    branches: [ master, dev, github-automation ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
@@ -16,10 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 8
+    - name: Set up JDK 16
       uses: actions/setup-java@v2
       with:
-        java-version: '8'
+        java-version: '16'
         distribution: 'adopt'
         cache: maven
     - name: Build with Maven
