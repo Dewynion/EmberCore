@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -15,11 +16,13 @@ import dev.blufantasyonline.embercore.config.PluginConfiguration;
 import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
 import dev.blufantasyonline.embercore.reflection.annotations.Inject;
+import dev.blufantasyonline.embercore.storage.sql.DbConnection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -32,6 +35,10 @@ public final class ConfigInjector {
     private static HashMap<JavaPlugin, HashMap<String, PluginConfiguration>> pluginConfigurations = new HashMap<>();
     private static HashMap<JavaPlugin, MultiFormatObjectMapperWrapper> pluginObjectMappers = new HashMap<>();
 
+    public static ObjectMapper getObjectMapper(JavaPlugin plugin) {
+        return getObjectMapper(plugin, ConfigurationFormat.YAML);
+    }
+
     public static ObjectMapper getObjectMapper(JavaPlugin plugin, ConfigurationFormat configurationFormat) {
         if (!pluginObjectMappers.containsKey(plugin)) {
             MultiFormatObjectMapperWrapper mapper = new MultiFormatObjectMapperWrapper();
@@ -40,12 +47,24 @@ public final class ConfigInjector {
         return pluginObjectMappers.get(plugin).getMapperFor(configurationFormat);
     }
 
+    public static PluginConfiguration getPluginConfiguration(JavaPlugin plugin, String name) {
+        pluginConfigurations.putIfAbsent(plugin, new HashMap<>());
+        if (!Paths.get(name).isAbsolute())
+            name = new File(plugin.getDataFolder(), name).getAbsolutePath();
+        return pluginConfigurations.get(plugin).get(name);
+    }
+
     public static void injectIntoObject(JavaPlugin plugin, Object o) {
         injectIntoObject(plugin, o, null);
     }
 
     public static void injectIntoObject(JavaPlugin plugin, Object o, File file) {
         injectIntoObject(plugin, o, file, "");
+    }
+
+    public static void injectIntoObject(JavaPlugin plugin, Object o, DbConnection connection, String parentPath) {
+        // TODO work something out with this
+        EmberCore.warn("DbConnection injection is not yet implemented.");
     }
 
     public static void injectIntoObject(JavaPlugin plugin, Object o, File file, String parentPath) {
@@ -67,12 +86,7 @@ public final class ConfigInjector {
                 .map(SerializationInfo::filename)
                 .orElse(DEFAULT_CONFIG_FILE);
 
-        StringBuilder parentNodePathSb = new StringBuilder(parentPath);
-        Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
-                .filter(info -> info.path().length() > 0)
-                .stream().findFirst()
-                .ifPresent(info -> parentNodePathSb.append(info.path()).append("."));
-        String parentNodePath = parentNodePathSb.toString();
+        String parentNodePath = parentConfigPath(o, parentPath);
 
         EmberCore.logInjection("Injecting configured values into object of type %s.", o.getClass().getName());
         EmberCore.logInjection("Filename for this object: %s", typeDefaultConfigFilename);
@@ -80,9 +94,7 @@ public final class ConfigInjector {
         for (Field field : objectClass.getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                // TODO: remove ExcludeFromSerialization in future
-                if (field.isAnnotationPresent(JsonIgnore.class) || field.isAnnotationPresent(ExcludeFromSerialization.class)
-                        || field.isAnnotationPresent(Inject.class))
+                if (ignore(field))
                     continue;
                 // get the config file
                 String filename = typeDefaultConfigFilename;
@@ -125,17 +137,7 @@ public final class ConfigInjector {
 
     public static <T> void injectIntoField(Field field, Object o, PluginConfiguration pc, String parentNodePath) throws IllegalAccessException {
         // path to follow through config - use the path in SerializationInfo or just start from the root element
-        String configPath = Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
-                .map(SerializationInfo::path)
-                .orElse("");
-
-        if (configPath.isEmpty())
-            configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE));
-
-        // slap that bad boy on there
-        if (!parentNodePath.isEmpty())
-            configPath = parentNodePath + "." + configPath;
-        configPath = configPath.toLowerCase();
+        String configPath = configPathName(field, parentNodePath);
 
         EmberCore.logInjection("Injecting configured value into field %s (config path %s)...", field.getName(), configPath);
 
@@ -149,6 +151,32 @@ public final class ConfigInjector {
                 configuredObject == codedValue ? "(using default)" : "");
     }
 
+    public static void readFromObject(PluginConfiguration pc, Object o) {
+        readFromObject(pc, o, "");
+    }
+
+    public static void readFromObject(PluginConfiguration pc, Object o, String parentPath) {
+        Class<?> objectClass = o.getClass();
+        String parentNodePath = parentConfigPath(o, parentPath);
+        for (Field field : objectClass.getDeclaredFields()) {
+            try {
+                field.setAccessible(true);
+                if (ignore(field))
+                    continue;
+                readFromField(pc, field, o, parentNodePath);
+            } catch (IllegalAccessException ex) {
+                EmberCore.warn("Unable to access field %s in class %s while reading values into config.",
+                        field.getName(), objectClass.getName());
+            }
+        }
+    }
+
+    public static void readFromField(PluginConfiguration pc, Field field, Object o, String parentNodePath) throws IllegalAccessException {
+        String configPath = configPathName(field, parentNodePath);
+        EmberCore.logInjection("  Setting value %s to the value of field %s.", configPath, field.getName());
+        pc.set(configPath, field.get(o));
+    }
+
     public static void registerModule(JavaPlugin plugin, SimpleModule module) {
         // laughed way too hard at this, i could have given it a better var name but like...this one's funny to me
         if (!pluginObjectMappers.containsKey(plugin))
@@ -157,6 +185,44 @@ public final class ConfigInjector {
         mfomw.jsonMapper.registerModule(module);
         mfomw.yamlMapper.registerModule(module);
         mfomw.xmlMapper.registerModule(module);
+    }
+
+    private static String configPathName(Field field) {
+        return configPathName(field, "");
+    }
+
+    private static String configPathName(Field field, String parentPath) {
+        String configPath = Optional.ofNullable(field.getAnnotation(SerializationInfo.class))
+                .map(SerializationInfo::path)
+                .orElse("");
+
+        if (configPath.isEmpty())
+            configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE));
+
+        // slap that bad boy on there
+        if (!parentPath.isEmpty())
+            configPath = parentPath + "." + configPath;
+        return configPath.toLowerCase();
+    }
+
+    private static String parentConfigPath(Object object) {
+        return parentConfigPath(object, "");
+    }
+
+    private static String parentConfigPath(Object object, String parentPath) {
+        Class<?> objectClass = object.getClass();
+        StringBuilder parentNodePathSb = new StringBuilder(parentPath);
+        Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
+                .filter(info -> info.path().length() > 0)
+                .stream().findFirst()
+                .ifPresent(info -> parentNodePathSb.append(info.path()).append("."));
+        return parentNodePathSb.toString();
+    }
+
+    private static boolean ignore(Field field) {
+        return field.isAnnotationPresent(JsonIgnore.class)
+                || field.isAnnotationPresent(ExcludeFromSerialization.class)
+                || field.isAnnotationPresent(Inject.class);
     }
 
     /**
@@ -173,7 +239,8 @@ public final class ConfigInjector {
             yamlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             jsonMapper = new ObjectMapper()
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .enable(SerializationFeature.INDENT_OUTPUT);
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
             jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
             jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -186,15 +253,11 @@ public final class ConfigInjector {
         }
 
         public ObjectMapper getMapperFor(ConfigurationFormat configurationFormat) {
-            switch (configurationFormat) {
-                case YAML:
-                default:
-                    return yamlMapper;
-                case JSON:
-                    return jsonMapper;
-                case XML:
-                    return xmlMapper;
-            }
+            return switch (configurationFormat) {
+                default -> yamlMapper;
+                case JSON -> jsonMapper;
+                case XML -> xmlMapper;
+            };
         }
     }
 

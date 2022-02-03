@@ -1,6 +1,7 @@
 package dev.blufantasyonline.embercore.geometry;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public final class VectorUtil {
@@ -42,5 +43,25 @@ public final class VectorUtil {
         // dot = -1.0 means the target is directly behind (180 degrees)
         // after some basic algebra:
         return (-90 * v1.dot(v2)) + 90;
+    }
+
+    public static Vector direction(Location from, Entity to) {
+        return direction(from, to.getLocation());
+    }
+
+    public static Vector direction(Entity from, Location to) {
+        return direction(from.getLocation(), to);
+    }
+
+    public static Vector direction(Entity from, Entity to) {
+        return direction(from.getLocation(), to.getLocation());
+    }
+
+    public static Vector direction(Location from, Location to) {
+        return direction(from.toVector(), to.toVector());
+    }
+
+    public static Vector direction(Vector from, Vector to) {
+        return from.subtract(to).normalize();
     }
 }

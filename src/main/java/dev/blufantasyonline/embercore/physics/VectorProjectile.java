@@ -86,6 +86,10 @@ public class VectorProjectile {
         recalculateInterpolationScale = true;
     }
 
+    public final void setSize(Vector newSize) {
+        setSize(newSize.getX(), newSize.getY(), newSize.getZ());
+    }
+
     public final int getInterpolationScale() {
         return interpolationScale;
     }

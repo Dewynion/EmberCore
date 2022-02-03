@@ -9,22 +9,22 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SerializationInfo {
     /**
-     * Specifies the file to read from, starting from the plugin's data folder.
-     * If applied to a type, sets this as the default filename for all serialized fields.
+     * Please use {@link #location()} instead.
      */
-    String filename() default "";
+    @Deprecated String filename() default "";
+
+    /**
+     * Specifies the location to read from.
+     *
+     * If applied to a type, sets this as the default location for all serialized fields.
+     */
+    String location() default "";
+
+    boolean remote() default false;
 
     /**
      * Specifies the path through the config tree taken to reach the value for a field.
      * When applied to a type, this value will be prepended to all paths in the file.
      */
     String path() default "";
-
-    /**
-     * If this is true, any Collection or Map object will be replaced entirely from config.
-     * If this is false, values in config will be appended to the existing values.
-     *
-     * Means nothing when applied to a class.
-     */
-    boolean overwriteCollections() default true;
 }

@@ -1,12 +1,10 @@
 package dev.blufantasyonline.embercore.physics;
 
-public final class PhysicsUtil {
-    private static long msToSeconds(long ms) {
-        return ms / 1000L;
-    }
+import static dev.blufantasyonline.embercore.util.MathUtil.toSeconds;
 
+public final class PhysicsUtil {
     public static double acceleration(double distance, double initialVelocity, long timeMs) {
-        double time = msToSeconds(timeMs);
+        double time = toSeconds(timeMs, TimeUnits.MILLISECONDS);
         return 2.0 * ((distance / Math.pow(time, 2)) - (initialVelocity / time));
     }
 
@@ -15,13 +13,13 @@ public final class PhysicsUtil {
      * and final velocity.
      */
     public static double distanceFromVelocities(double initialVelocity, double finalVelocity, long timeMs) {
-        return ((initialVelocity + finalVelocity) / 2.0) * (msToSeconds(timeMs));
+        return ((initialVelocity + finalVelocity) / 2.0) * (toSeconds(timeMs, TimeUnits.MILLISECONDS));
     }
 
     /**
      * Calculates the distance something has traveled over the given time in milliseconds.
      */
     public static double distance(double initialVelocity, double acceleration, long timeMs) {
-        return (initialVelocity * timeMs) + (0.5 * acceleration * Math.pow(msToSeconds(timeMs), 2));
+        return (initialVelocity * timeMs) + (0.5 * acceleration * Math.pow(toSeconds(timeMs, TimeUnits.MILLISECONDS), 2));
     }
 }

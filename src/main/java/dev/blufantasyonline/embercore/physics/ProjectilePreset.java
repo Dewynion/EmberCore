@@ -1,6 +1,5 @@
 package dev.blufantasyonline.embercore.physics;
 
-import dev.blufantasyonline.embercore.util.StringUtil;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
@@ -10,15 +9,4 @@ public class ProjectilePreset {
     public Particle particle = Particle.CRIT;
     public long lifetime = 0;
     public double range = 0.0;
-
-    @Override
-    public String toString() {
-        return StringUtil.fString("Projectile Preset:\n" +
-                        "  Name: {name}\n" +
-                        "  Size: {size}\n" +
-                        "  Particle: {particle}\n" +
-                        "  Lifetime: {lifetime}\n" +
-                        "  Range: {range}\n",
-                this);
-    }
 }

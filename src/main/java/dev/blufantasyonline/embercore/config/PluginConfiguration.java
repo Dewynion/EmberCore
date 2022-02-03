@@ -3,9 +3,7 @@ package dev.blufantasyonline.embercore.config;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.MissingNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import dev.blufantasyonline.embercore.EmberCore;
@@ -21,31 +19,20 @@ import java.util.Collection;
 import java.util.Map;
 
 public abstract class PluginConfiguration {
-    protected final File configurationFile;
+    protected final String configurationLocation;
     protected final JavaPlugin plugin;
     protected final ConfigurationFormat configurationFormat;
     protected JsonNode configRoot;
 
-    public PluginConfiguration(File configurationFile, JavaPlugin plugin, ConfigurationFormat configurationFormat) {
-        this.configurationFile = configurationFile;
+    public PluginConfiguration(JavaPlugin plugin, String configurationLocation, ConfigurationFormat configurationFormat) {
         this.plugin = plugin;
+        this.configurationLocation = configurationLocation;
         this.configurationFormat = configurationFormat;
-        try {
-            configRoot = ConfigInjector.getObjectMapper(plugin, configurationFormat).readTree(configurationFile);
-            if (configRoot == null || configRoot instanceof NullNode || configRoot instanceof MissingNode)
-                configRoot = JsonNodeFactory.instance.objectNode();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
-    public void saveConfiguration() {
-        try {
-            ConfigInjector.getObjectMapper(plugin, configurationFormat).writeValue(configurationFile, configRoot);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    public abstract JsonNode readConfiguration();
+
+    public abstract void saveConfiguration();
 
     public final <T> T get(String path, Class<T> tClass, Object defaultValue) {
         return get(path, tClass, defaultValue, false);
@@ -103,11 +90,8 @@ public abstract class PluginConfiguration {
             ObjectMapper mapper = ConfigInjector.getObjectMapper(plugin, configurationFormat);
             return mapper.convertValue(node.path(fieldName), type);
         } catch (NullPointerException | ClassCastException ex) {
-            if (setIfNotFound) {
-                EmberCore.logSerialization("  Setting config path %s in file %s to its default value.",
-                        path, configurationFile.getAbsolutePath());
+            if (setIfNotFound)
                 set(path, defaultValue);
-            }
         } catch (IllegalArgumentException ex) {
             EmberCore.warn("Illegal argument exception for config path '%s' (type %s).", path, type);
             ex.printStackTrace();
@@ -132,12 +116,13 @@ public abstract class PluginConfiguration {
         return plugin;
     }
 
-    public final File getConfigurationFile() {
-        return configurationFile;
-    }
-
     public final ConfigurationFormat getConfigurationFormat() {
         return configurationFormat;
+    }
+
+    public static PluginConfiguration create(String configurationLocation, JavaPlugin plugin) {
+        // TODO: fix this to support urls later
+        return create(new File(configurationLocation), plugin);
     }
 
     public static PluginConfiguration create(File configurationFile, JavaPlugin plugin) throws NullPointerException {
@@ -163,14 +148,7 @@ public abstract class PluginConfiguration {
 
         String filePath = configurationFile.getAbsolutePath();
         String fileExtension = filePath.substring(filePath.lastIndexOf('.'));
-
-        ConfigurationFormat format = ConfigurationFormat.TEXT;
-        for (ConfigurationFormat fmt : ConfigurationFormat.values()) {
-            if (fmt.fileExtension.equalsIgnoreCase(fileExtension)) {
-                format = fmt;
-                break;
-            }
-        }
+        ConfigurationFormat format = ConfigurationFormat.byFileExtension(fileExtension);
 
         if (format.configClass == null) {
             createError(plugin, format, filePath, "Provided file format is not supported.");
@@ -178,18 +156,19 @@ public abstract class PluginConfiguration {
         }
 
         try {
-            Constructor<? extends PluginConfiguration> c = format.configClass.getDeclaredConstructor(File.class, JavaPlugin.class);
+            Constructor<? extends PluginConfiguration> c = format.configClass.getDeclaredConstructor(JavaPlugin.class, File.class);
             c.setAccessible(true);
-            return c.newInstance(configurationFile, plugin);
-        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            createError(plugin, format, filePath, "No constructor accepting arguments of type { File, JavaPlugin } was found.");
+            PluginConfiguration pc = c.newInstance(plugin, configurationFile);
+            pc.configRoot = pc.readConfiguration();
+            return pc;
+        } catch (NoSuchMethodException e) {
+            createError(plugin, format, filePath, "No constructor accepting arguments of type { JavaPlugin, File } was found.");
+            e.printStackTrace();
+            return null;
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
             return null;
         }
-    }
-
-    protected void ioError() {
-        EmberCore.warn(plugin, "I/O exception: no read/write access for file %s.", configurationFile.getAbsolutePath());
     }
 
     private static void createError(JavaPlugin plugin, ConfigurationFormat format, String filePath, String errorMessage) {

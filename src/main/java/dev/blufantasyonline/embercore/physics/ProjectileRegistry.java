@@ -27,6 +27,7 @@ public final class ProjectileRegistry {
                 protected void init() {
                     setLifetime(preset.lifetime);
                     setRange(preset.range);
+                    setSize(preset.size);
                     super.init();
                 }
             };
