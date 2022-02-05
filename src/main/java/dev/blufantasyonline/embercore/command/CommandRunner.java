@@ -1,5 +1,6 @@
 package dev.blufantasyonline.embercore.command;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 import dev.blufantasyonline.embercore.EmberCore;
@@ -12,8 +13,11 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 public abstract class CommandRunner {
+    @JsonIgnore
     private static final String DEFAULT_PERMISSION_MESSAGE = "Missing permission!";
-
+    @JsonIgnore
+    private final static String[] EMPTY_ARGS = new String[0];
+    @JsonIgnore
     protected String identifier;
     protected List<String> aliases = new ArrayList<>();
     protected String description = "No description available.";
@@ -21,20 +25,23 @@ public abstract class CommandRunner {
     protected String permission = "";
     protected String permissionMessage = "";
     protected String usage = "/<commmand>";
+    @JsonIgnore
     protected int numArgs = 0;
+    @JsonIgnore
     protected boolean playerOnly = false;
 
     /**
      * The parent of this node. May be null. DO NOT set directly; use {@link #setParent(CommandRunner)} instead.
      */
+    @JsonIgnore
     private CommandRunner parent;
+    @JsonIgnore
     private Class<? extends CommandRunner> parentClass;
     /**
      * The children of this node. May be empty. Do not modify directly; assign children to this node via {@link #setParent(CommandRunner)}.
      */
+    @JsonIgnore
     private Map<String, CommandRunner> children = new HashMap<>();
-
-    private final static String[] EMPTY_ARGS = new String[0];
 
     public CommandRunner(String identifier, String... aliases) {
         this(null, identifier, aliases);
@@ -178,8 +185,8 @@ public abstract class CommandRunner {
         } else if (leaf.numArgs > argsList.size()) {
             sendMessage(sender, "Usage: %s", leaf.getUsage());
             return true;
-        } else if (!sender.hasPermission(leaf.permission)) {
-            String msg = permissionMessage.isEmpty() ? DEFAULT_PERMISSION_MESSAGE : permissionMessage;
+        } else if (!leaf.permission.isBlank() && !sender.hasPermission(leaf.permission)) {
+            String msg = permissionMessage.isBlank() ? DEFAULT_PERMISSION_MESSAGE : permissionMessage;
             sendMessage(sender, msg);
             return true;
         }

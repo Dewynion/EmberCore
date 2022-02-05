@@ -22,6 +22,8 @@ public @interface SerializationInfo {
 
     boolean remote() default false;
 
+    boolean useSuperclasses() default false;
+
     /**
      * Specifies the path through the config tree taken to reach the value for a field.
      * When applied to a type, this value will be prepended to all paths in the file.

@@ -3,8 +3,7 @@ package dev.blufantasyonline.embercore.command;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.blufantasyonline.embercore.EmberCore;
 import dev.blufantasyonline.embercore.reflection.PluginLoader;
-import dev.blufantasyonline.embercore.reflection.annotations.Preload;
-import org.bukkit.command.*;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -38,8 +37,10 @@ public final class CommandHandler {
         PluginCommand command = plugin.getCommand(rootCommand.identifier);
         command.setAliases(rootCommand.aliases)
                 .setDescription(rootCommand.shortDescription)
-                .setUsage(rootCommand.usage)
-                .setPermission(rootCommand.permission);
+                .setUsage(rootCommand.usage);
+        if (!rootCommand.permission.isBlank())
+            command.setPermissionMessage(rootCommand.permissionMessage)
+                    .setPermission(rootCommand.permission);
 
         // finally automatically register an executor
         command.setExecutor((commandSender, command1, label, args) -> rootCommand.executeLeaf(commandSender, args));

@@ -6,7 +6,7 @@
 
     <groupId>dev.blufantasyonline</groupId>
     <artifactId>Embercore</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 
     <properties>
         <!-- Modify to set an output directory to which to copy the packaged .jar during the install phase. -->

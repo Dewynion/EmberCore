@@ -23,7 +23,9 @@ import org.bukkit.util.Vector;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 public final class ConfigInjector {
@@ -81,21 +83,54 @@ public final class ConfigInjector {
         // literally the type's default config filename.
         // this is so you can define a config file in an annotation for a class itself ("commands.yml" for instance)
         // and not have to add @SerializationInfo(path = "your file here") to every field.
-        String typeDefaultConfigFilename = Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
-                .filter(info -> info.filename().length() > 0)
-                .map(SerializationInfo::filename)
-                .orElse(DEFAULT_CONFIG_FILE);
+
+        // first: cache fields to inject into.
+        List<Field> fields = new ArrayList<>();
+
+        String typeDefaultConfigFilename = "";
+
+        // the superclass of a base level class will be Object, so when this loop calls the second time for object,
+        // it will just cancel instead because the superclass of Object/enum/etc. is null.
+        while (objectClass != null && objectClass.getSuperclass() != null) {
+            SerializationInfo serializationInfo = objectClass.getAnnotation(SerializationInfo.class);
+            // This will always be the highest-level default filename.
+            if (serializationInfo != null && typeDefaultConfigFilename.isBlank()) {
+                // TODO: Phase out filename.
+                if (serializationInfo.location().isBlank())
+                    typeDefaultConfigFilename = serializationInfo.filename();
+                else
+                    typeDefaultConfigFilename = serializationInfo.location();
+            }
+
+            for (Field field : objectClass.getDeclaredFields()) {
+                try {
+                    if (!ignore(field)) {
+                        field.setAccessible(true);
+                        fields.add(field);
+                    }
+                } catch (RuntimeException ex) {
+                    EmberCore.warn("Unable to access field %s in class %s while injecting config.",
+                            field.getName(), objectClass.getName());
+                    ex.printStackTrace();
+                }
+            }
+            // Don't use superclasses by default, and don't use them if the serialization info says no.
+            if (serializationInfo == null || !serializationInfo.useSuperclasses())
+                break;
+            objectClass = objectClass.getSuperclass();
+        }
+
+        // Set this to the default config file if it's still blank.
+        if (typeDefaultConfigFilename.isBlank())
+            typeDefaultConfigFilename = DEFAULT_CONFIG_FILE;
 
         String parentNodePath = parentConfigPath(o, parentPath);
 
         EmberCore.logInjection("Injecting configured values into object of type %s.", o.getClass().getName());
         EmberCore.logInjection("Filename for this object: %s", typeDefaultConfigFilename);
 
-        for (Field field : objectClass.getDeclaredFields()) {
+        for (Field field : fields) {
             try {
-                field.setAccessible(true);
-                if (ignore(field))
-                    continue;
                 // get the config file
                 String filename = typeDefaultConfigFilename;
                 if (field.isAnnotationPresent(SerializationInfo.class)) {
@@ -196,11 +231,11 @@ public final class ConfigInjector {
                 .map(SerializationInfo::path)
                 .orElse("");
 
-        if (configPath.isEmpty())
+        if (configPath.isBlank())
             configPath = String.join(SNAKE_CASE_JOINER, field.getName().split(REGEX_CAMEL_TO_SNAKE));
 
         // slap that bad boy on there
-        if (!parentPath.isEmpty())
+        if (!parentPath.isBlank())
             configPath = parentPath + "." + configPath;
         return configPath.toLowerCase();
     }
@@ -212,10 +247,20 @@ public final class ConfigInjector {
     private static String parentConfigPath(Object object, String parentPath) {
         Class<?> objectClass = object.getClass();
         StringBuilder parentNodePathSb = new StringBuilder(parentPath);
-        Optional.ofNullable(objectClass.getAnnotation(SerializationInfo.class))
-                .filter(info -> info.path().length() > 0)
-                .stream().findFirst()
-                .ifPresent(info -> parentNodePathSb.append(info.path()).append("."));
+        // loop through object + superclasses (if set to use superclasses), construct parent node
+        // path based on SerializationInfo#path() if applicable
+        while (objectClass != null && objectClass.getSuperclass() != null) {
+            SerializationInfo serializationInfo = objectClass.getAnnotation(SerializationInfo.class);
+            Optional.ofNullable(serializationInfo)
+                    .filter(info -> !info.path().isBlank())
+                    .stream().findFirst()
+                    .ifPresent(info ->
+                            // Insert the path at the *back* of the string builder.
+                            parentNodePathSb.insert(0, info.path() + "."));
+            if (serializationInfo == null || !serializationInfo.useSuperclasses())
+                break;
+            objectClass = objectClass.getSuperclass();
+        }
         return parentNodePathSb.toString();
     }
 

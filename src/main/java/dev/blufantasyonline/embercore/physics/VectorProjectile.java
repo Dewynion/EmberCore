@@ -9,6 +9,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 public class VectorProjectile {
     public static double DEFAULT_SIZE = 0.5;
     private boolean active;
@@ -26,6 +30,8 @@ public class VectorProjectile {
     protected int interpolationScale = 1;
     protected long expireTime = 0;
     protected double range = 0.0;
+    protected Set<Block> hitBlocks = new HashSet<>();
+    protected Set<UUID> hitEntities = new HashSet<>();
     private boolean recalculateInterpolationScale = false;
 
     public VectorProjectile(Location location) {
@@ -151,12 +157,26 @@ public class VectorProjectile {
     }
 
     /**
-     * Determines whether or not to hit
+     * Determines whether or not to hit an entity.
      */
     public boolean shouldHitEntity(LivingEntity entity) {
         return !entity.equals(owner);
     }
 
+    /**
+     * The code to run if {@link #shouldHitBlock(Block)} returns true.
+     * By default, does nothing.
+     *
+     * @return True if the projectile should be destroyed after this code is run,
+     * false otherwise.
+     */
+    public boolean onHitBlock(Block block) {
+        return true;
+    }
+
+    /**
+     * Determines whether or not to hit a block.
+     */
     public boolean shouldHitBlock(Block block) {
         return block.getType().isSolid();
     }
@@ -182,8 +202,9 @@ public class VectorProjectile {
                     // if it connects with a block it perceives as solid,
                     // reaches its maximum lifetime, travels its maximum range,
                     // or has been destroyed externally, cancel the thread
-                    if (shouldHitBlock(location.getBlock()) ||
-                            (range != 0 && distSquared >= Math.pow(range, 2)))
+                    Block block = location.getBlock();
+                    if ((shouldHitBlock(block) && onHitBlock(block))
+                            || (range != 0 && distSquared >= Math.pow(range, 2)))
                         cancel();
 
                     // interpolated tick
@@ -191,10 +212,10 @@ public class VectorProjectile {
                     for (LivingEntity entity : location.getWorld().getLivingEntities()) {
                         if (!hitbox.overlaps(entity.getBoundingBox()))
                             continue;
-                        if (shouldHitEntity(entity))
-                            if (onHitEntity(entity))
-                                cancel();
+                        if (shouldHitEntity(entity) && onHitEntity(entity))
+                            cancel();
                     }
+
                     Location prev = location.clone();
                     location.add(interpolatedVelocity);
                     distSquared += prev.distanceSquared(location);
