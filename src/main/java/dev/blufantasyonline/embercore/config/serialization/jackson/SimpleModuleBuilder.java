@@ -13,6 +13,22 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 public final class SimpleModuleBuilder {
+    public static SimpleModule keySerializerModule(Class<? extends JsonSerializer> clz) {
+        String typeName = getTypeName(clz);
+        SimpleModule module = new SimpleModule(String.format("%s_key-serializer", typeName));
+        try {
+            Type keyType = ReflectionUtil.getGenericSuperclassType(clz);
+            if (keyType instanceof Class)
+                module.addKeySerializer((Class<?>) keyType,
+                        (JsonSerializer) retrieveConstructor(clz).newInstance());
+        } catch (Exception ex) {
+            // TODO: more specific error
+            ex.printStackTrace();
+        }
+        EmberCore.info("Constructed module %s.", module.getModuleName());
+        return module;
+    }
+
     public static SimpleModule keyDeserializerModule(Class<? extends TypedKeyDeserializer> clz) {
         String typeName = getTypeName(clz);
         SimpleModule module = new SimpleModule(String.format("%s_key-deserializer", typeName));

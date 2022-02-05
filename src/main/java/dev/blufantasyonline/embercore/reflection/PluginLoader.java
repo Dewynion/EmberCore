@@ -9,6 +9,7 @@ import dev.blufantasyonline.embercore.command.CommandHandler;
 import dev.blufantasyonline.embercore.command.CommandRunner;
 import dev.blufantasyonline.embercore.config.serialization.jackson.SimpleModuleBuilder;
 import dev.blufantasyonline.embercore.config.serialization.jackson.TypedKeyDeserializer;
+import dev.blufantasyonline.embercore.config.serialization.jackson.TypedKeySerializer;
 import dev.blufantasyonline.embercore.reflection.annotations.*;
 import dev.blufantasyonline.embercore.util.ErrorUtil;
 import org.bukkit.Bukkit;
@@ -407,9 +408,10 @@ public final class PluginLoader {
         classes.forEach(clz -> {
             try {
                 // ========================================================================
-                // Register serializers.
+                // Register serializers. The typed key serializer check exists because Jackson
+                // is a little weird on how they decided to separate key (de)serializers.
                 // ========================================================================
-                if (JsonSerializer.class.isAssignableFrom(clz)) {
+                if (!TypedKeySerializer.class.isAssignableFrom(clz) && JsonSerializer.class.isAssignableFrom(clz)) {
                     SimpleModule serializerModule = SimpleModuleBuilder.serializerModule((Class<? extends JsonSerializer>) clz);
                     ConfigInjector.registerModule(plugin, serializerModule);
                     if (plugin.equals(EmberCore.getInstance()))
@@ -431,6 +433,14 @@ public final class PluginLoader {
                     // ========================================================================
                 } else if (TypedKeyDeserializer.class.isAssignableFrom(clz)) {
                     SimpleModule keyModule = SimpleModuleBuilder.keyDeserializerModule((Class<? extends TypedKeyDeserializer>) clz);
+                    ConfigInjector.registerModule(plugin, keyModule);
+                    if (plugin.equals(EmberCore.getInstance()))
+                        defaultModules.add(keyModule);
+                    // ========================================================================
+                    // Register key serializers.
+                    // ========================================================================
+                } else if (TypedKeySerializer.class.isAssignableFrom(clz)) {
+                    SimpleModule keyModule = SimpleModuleBuilder.keySerializerModule((Class<? extends TypedKeySerializer>) clz);
                     ConfigInjector.registerModule(plugin, keyModule);
                     if (plugin.equals(EmberCore.getInstance()))
                         defaultModules.add(keyModule);
