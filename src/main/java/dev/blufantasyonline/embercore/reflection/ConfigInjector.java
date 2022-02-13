@@ -13,7 +13,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import dev.blufantasyonline.embercore.EmberCore;
 import dev.blufantasyonline.embercore.config.ConfigurationFormat;
 import dev.blufantasyonline.embercore.config.PluginConfiguration;
-import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
 import dev.blufantasyonline.embercore.reflection.annotations.Inject;
 import dev.blufantasyonline.embercore.storage.sql.DbConnection;
@@ -266,7 +265,6 @@ public final class ConfigInjector {
 
     private static boolean ignore(Field field) {
         return field.isAnnotationPresent(JsonIgnore.class)
-                || field.isAnnotationPresent(ExcludeFromSerialization.class)
                 || field.isAnnotationPresent(Inject.class);
     }
 

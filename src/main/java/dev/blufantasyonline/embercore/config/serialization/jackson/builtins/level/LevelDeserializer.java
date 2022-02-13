@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import dev.blufantasyonline.embercore.EmberCore;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
+import dev.blufantasyonline.embercore.reflection.annotations.Preload;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
-@OnEnable
+@Preload
 public class LevelDeserializer extends StdDeserializer<Level> {
     private static final Level DEFAULT_LEVEL = Level.INFO;
 

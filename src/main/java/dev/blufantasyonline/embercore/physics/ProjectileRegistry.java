@@ -1,6 +1,6 @@
 package dev.blufantasyonline.embercore.physics;
 
-import dev.blufantasyonline.embercore.config.serialization.ExcludeFromSerialization;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
 import org.bukkit.Location;
@@ -16,7 +16,7 @@ public final class ProjectileRegistry {
     @SerializationInfo(filename = "projectile-presets.yml")
     private static HashMap<String, ProjectilePreset> projectilePresets = new HashMap<>();
 
-    @ExcludeFromSerialization
+    @JsonIgnore
     private static LinkedHashSet<VectorProjectile> projectiles = new LinkedHashSet<>();
 
     public static VectorProjectile fromPreset(String presetName, Location origin) {

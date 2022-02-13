@@ -1,12 +1,8 @@
 package dev.blufantasyonline.embercore.util;
 
-import dev.blufantasyonline.embercore.EmberCore;
 import dev.blufantasyonline.embercore.reflection.ReflectionUtil;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

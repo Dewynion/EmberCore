@@ -2,16 +2,16 @@ package dev.blufantasyonline.embercore.util.sequence;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.ref.Reference;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public final class SequenceBuilder {
     private JavaPlugin plugin;
     private Stack<Sequence> sequences = new Stack<>();
     private Sequence root;
+    private Sequence marked;
     private Sequence current;
 
     public SequenceBuilder(JavaPlugin plugin, Runnable runnable) {
@@ -22,14 +22,19 @@ public final class SequenceBuilder {
         this.plugin = plugin;
         root = sequence;
         current = root;
+        marked = current;
     }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //  On-condition sequencers.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    public SequenceBuilder onCondition(AtomicReference<Boolean> conditionReference, Runnable runnable) {
+    public SequenceBuilder onCondition(AtomicBoolean conditionReference, Runnable runnable) {
         return onCondition((seq) -> conditionReference.get(), runnable);
+    }
+
+    public SequenceBuilder onCondition(AtomicBoolean conditionReference, Sequence sequence) {
+        return onCondition((seq) -> conditionReference.get(), sequence);
     }
 
     public SequenceBuilder onCondition(Predicate<Sequence> condition, Runnable runnable) {
@@ -45,8 +50,12 @@ public final class SequenceBuilder {
     //  On-condition sequencers that proceed to the next sequence.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    public SequenceBuilder onConditionThen(AtomicReference<Boolean> conditionReference, Runnable runnable) {
+    public SequenceBuilder onConditionThen(AtomicBoolean conditionReference, Runnable runnable) {
         return onConditionThen((seq) -> conditionReference.get(), runnable);
+    }
+
+    public SequenceBuilder onConditionThen(AtomicBoolean conditionReference, Sequence sequence) {
+        return onConditionThen((seq) -> conditionReference.get(), sequence);
     }
 
     public SequenceBuilder onConditionThen(Predicate<Sequence> condition, Runnable runnable) {
@@ -62,7 +71,7 @@ public final class SequenceBuilder {
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     public SequenceBuilder then(Runnable runnable) {
-        return _then(runnable, (seq) -> seq.endTask.test(seq));
+        return _then(runnable, Sequence::suspended);
     }
 
     public SequenceBuilder thenImmediate(Runnable runnable) {
@@ -70,7 +79,7 @@ public final class SequenceBuilder {
     }
 
     public SequenceBuilder then(Sequence sequence) {
-        return _then(sequence, (seq) -> seq.endTask.test(seq));
+        return _then(sequence, Sequence::suspended);
     }
 
     public SequenceBuilder thenImmediate(Sequence sequence) {
@@ -89,6 +98,14 @@ public final class SequenceBuilder {
         return with(new Sequence(plugin, runnable));
     }
 
+    public SequenceBuilder withConditional(Sequence sequence, AtomicBoolean condition) {
+        return withConditional(sequence, (seq) -> condition.get());
+    }
+
+    public SequenceBuilder withConditional(Runnable runnable, AtomicBoolean condition) {
+        return withConditional(runnable, (seq) -> condition.get());
+    }
+
     public SequenceBuilder withConditional(Sequence sequence, Predicate<Sequence> condition) {
         current.concurrent.put(sequence, condition);
         sequences.push(current);
@@ -101,15 +118,25 @@ public final class SequenceBuilder {
     }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    //  Conditional end sequencers for the current sequence.
+    //  Conditional suspend sequencers for the current sequence.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    public SequenceBuilder endIf(AtomicReference<Boolean> endCondition) {
-        return endIf((seq) -> endCondition.get());
+    @Deprecated(forRemoval = true)
+    public SequenceBuilder endIf(AtomicBoolean endCondition) {
+        return suspendIf((seq) -> endCondition.get());
     }
 
+    public SequenceBuilder suspendIf(AtomicBoolean endCondition) {
+        return suspendIf((seq) -> endCondition.get());
+    }
+
+    @Deprecated(forRemoval = true)
     public SequenceBuilder endIf(Predicate<Sequence> endTaskCondition) {
-        current.endTask = endTaskCondition;
+        return suspendIf(endTaskCondition);
+    }
+
+    public SequenceBuilder suspendIf(Predicate<Sequence> endTaskCondition) {
+        current.suspendCondition = endTaskCondition;
         return this;
     }
 
@@ -117,12 +144,12 @@ public final class SequenceBuilder {
     //  Conditional terminate sequencers for the current sequence.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    public SequenceBuilder terminateIf(AtomicReference<Boolean> terminateCondition) {
+    public SequenceBuilder terminateIf(AtomicBoolean terminateCondition) {
         return terminateIf((seq) -> terminateCondition.get());
     }
 
     public SequenceBuilder terminateIf(Predicate<Sequence> terminateCondition) {
-        current.terminate = terminateCondition;
+        current.terminateCondition = terminateCondition;
         return this;
     }
 
@@ -142,7 +169,28 @@ public final class SequenceBuilder {
         return this;
     }
 
-    // execute go brr
+    public SequenceBuilder mark() {
+        marked = current;
+        return this;
+    }
+
+    public SequenceBuilder recall() {
+        // Also used as a temp variable in a moment.
+        Sequence seq = current;
+        // Drag the current sequence back to the mark.
+        current = marked;
+        // Backtrack through the stack as long as it's got something in it and the currently-processing
+        // sequence doesn't reference the marked sequence.
+        // Since the current sequence shouldn't be on the stack, this works just fine, even if one uses
+        // mark() and then recall() (since seq == current == marked in that case).
+        while (!sequences.isEmpty() && seq != marked)
+            seq = sequences.pop();
+        return this;
+    }
+
+    //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    //  Literally just the execute method, here by its lonesome.
+    //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     public void execute() {
         root.execute();
@@ -173,8 +221,7 @@ public final class SequenceBuilder {
     }
 
     public SequenceBuilder once() {
-        current.maxIterations = 1;
-        return this;
+        return iterations(1);
     }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

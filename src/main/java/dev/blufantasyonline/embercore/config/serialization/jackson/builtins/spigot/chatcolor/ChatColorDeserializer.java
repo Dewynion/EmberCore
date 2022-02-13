@@ -6,13 +6,13 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import dev.blufantasyonline.embercore.EmberCore;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
+import dev.blufantasyonline.embercore.reflection.annotations.Preload;
 import net.md_5.bungee.api.ChatColor;
 
 import java.awt.*;
 import java.io.IOException;
 
-@OnEnable
+@Preload
 public class ChatColorDeserializer extends StdDeserializer<ChatColor> {
     protected ChatColorDeserializer() {
         super(ChatColor.class);

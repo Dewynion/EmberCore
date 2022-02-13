@@ -3,12 +3,12 @@ package dev.blufantasyonline.embercore.config.serialization.jackson.builtins.spi
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
+import dev.blufantasyonline.embercore.reflection.annotations.Preload;
 import org.bukkit.util.Vector;
 
 import java.io.IOException;
 
-@OnEnable
+@Preload
 public class VectorSerializer extends StdSerializer<Vector> {
     public VectorSerializer() {
         super(Vector.class);

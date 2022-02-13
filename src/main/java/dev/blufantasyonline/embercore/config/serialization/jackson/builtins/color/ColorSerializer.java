@@ -3,12 +3,12 @@ package dev.blufantasyonline.embercore.config.serialization.jackson.builtins.col
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
+import dev.blufantasyonline.embercore.reflection.annotations.Preload;
 
 import java.awt.*;
 import java.io.IOException;
 
-@OnEnable
+@Preload
 public class ColorSerializer extends StdSerializer<Color> {
     public ColorSerializer() {
         super(Color.class);

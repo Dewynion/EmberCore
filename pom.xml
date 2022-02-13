@@ -6,7 +6,7 @@
 
     <groupId>dev.blufantasyonline</groupId>
     <artifactId>Embercore</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 
     <properties>
         <!-- Modify to set an output directory to which to copy the packaged .jar during the install phase. -->
@@ -132,9 +132,8 @@
 
     <distributionManagement>
         <repository>
-            <id>github</id>
-            <name>GitHub Blu-Fantasy-Online Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/Blu-Fantasy-Online/Embercore</url>
+            <id>bfo-jfrog-repo</id>
+            <url>https://blufantasyonline.jfrog.io/artifactory/public-bfo/</url>
         </repository>
     </distributionManagement>
 </project>

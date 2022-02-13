@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
+import dev.blufantasyonline.embercore.reflection.annotations.Preload;
 import org.bukkit.util.Vector;
 
 import java.io.IOException;
 
-@OnEnable
+@Preload
 public class VectorDeserializer extends StdDeserializer<Vector> {
     protected VectorDeserializer() {
         super(Vector.class);

@@ -1,7 +1,6 @@
 package dev.blufantasyonline.embercore.storage.persistent;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Sign;
 import org.bukkit.block.TileState;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
