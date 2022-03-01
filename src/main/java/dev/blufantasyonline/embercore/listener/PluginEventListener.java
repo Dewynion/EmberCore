@@ -4,7 +4,6 @@ package dev.blufantasyonline.embercore.listener;
 import dev.blufantasyonline.embercore.EmberCore;
 import dev.blufantasyonline.embercore.reflection.PluginLoader;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
-import dev.blufantasyonline.embercore.util.armorstand.ArmorStandUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -24,8 +23,6 @@ public final class PluginEventListener implements Listener {
                 EmberCore.info("Plugin %s has been disabled. Clearing cached information.",
                         plugin.getName());
                 PluginLoader.remove(plugin);
-                if (ArmorStandUtil.registered(plugin))
-                    ArmorStandUtil.removeAll(plugin);
             }
         }
     }

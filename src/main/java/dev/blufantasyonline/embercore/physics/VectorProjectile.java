@@ -1,7 +1,7 @@
 package dev.blufantasyonline.embercore.physics;
 
 import dev.blufantasyonline.embercore.EmberCore;
-import dev.blufantasyonline.embercore.geometry.Vectors;
+import dev.blufantasyonline.embercore.math.geometry.Vectors;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;

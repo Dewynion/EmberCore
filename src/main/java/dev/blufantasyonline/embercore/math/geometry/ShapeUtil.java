@@ -1,4 +1,4 @@
-package dev.blufantasyonline.embercore.geometry;
+package dev.blufantasyonline.embercore.math.geometry;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;

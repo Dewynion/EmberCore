@@ -1,31 +1,67 @@
-package dev.blufantasyonline.embercore.util;
+package dev.blufantasyonline.embercore.math;
 
 import dev.blufantasyonline.embercore.EmberCore;
-import dev.blufantasyonline.embercore.physics.TimeUnits;
+import dev.blufantasyonline.embercore.util.TimeUnits;
+import dev.blufantasyonline.embercore.util.ErrorUtil;
+import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class MathUtil {
+    /**
+     * An arbitrarily small number against which any double value subject to inaccuracy may be safely compared.
+     * Use {@link #zero(double)} or {@link Math#abs(double)} <= {@link #ARBITRARILY_SMALL_NUMBER}.
+      */
+    public static final double ARBITRARILY_SMALL_NUMBER = 1e-6;
+
+    private static final HashMap<String, Expression> expressionCache = new HashMap<>();
+
+    /**
+     * Compares the provided value with {@link #ARBITRARILY_SMALL_NUMBER} rather than 0.0 in order to
+     * mitigate slight inaccuracy, such as with velocities.
+     * @param value The value to compare.
+     * @return Whether the provided value is effectively 0.0.
+     */
+    public static boolean zero(double value) {
+        return Math.abs(value) <= ARBITRARILY_SMALL_NUMBER;
+    }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     //  Time conversion methods, with shortcuts for common conversions.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+    /**
+     * Converts the provided amount of time into a different unit of time.
+     * @param time The amount of time to convert.
+     * @param from The {@link TimeUnits} that the provided time is in.
+     * @param to The {@link TimeUnits} to which to convert the provided time.
+     * @return An amount of time converted from one designated {@link TimeUnits} to the other.
+     */
     public static double convertTime(double time, TimeUnits from, TimeUnits to) {
         return (time * from.seconds()) / to.seconds();
     }
 
+    /**
+     * Shorthand for {@link #convertTime(double, TimeUnits, TimeUnits)} from
+     * {@link TimeUnits#TICKS} to {@link TimeUnits#MILLISECONDS}.
+     */
     public static long ticksToMs(int ticks) {
         return Math.round(convertTime(ticks, TimeUnits.TICKS, TimeUnits.MILLISECONDS));
     }
 
+    /**
+     * Shorthand for {@link #convertTime(double, TimeUnits, TimeUnits)} from
+     * {@link TimeUnits#MILLISECONDS} to {@link TimeUnits#TICKS}.
+     */
     public static int msToTicks(long ms) {
         return (int) Math.round(convertTime(ms, TimeUnits.MILLISECONDS, TimeUnits.TICKS));
     }
 
+    /**
+     * Shorthand for {@link #convertTime(double, TimeUnits, TimeUnits)} to {@link TimeUnits#SECONDS}.
+     */
     public static long toSeconds(double time, TimeUnits from) {
         return Math.round(convertTime(time, from, TimeUnits.SECONDS));
     }
@@ -44,8 +80,26 @@ public final class MathUtil {
         }
     }
 
+    /**
+     * Clamps the provided value within [0.0, 1.0].
+     * @param val The value to clamp.
+     * @return A double in the range [0.0, 1.0] based off of the provided value.
+     */
     public static double clampOne(double val) {
         return clamp(val, 0.0, 1.0);
+    }
+
+    // this sucks and could be much better
+    public static Collection<Double> normalized(Collection<Double> numbers) {
+        ArrayList<Double> normalizedNumbers = new ArrayList<>(numbers.size());
+        double max = -Double.MAX_VALUE;
+        for (double n : numbers)
+            if (n > max)
+                max = n;
+        int index = 0;
+        for (double n : numbers)
+            normalizedNumbers.set(index++, n / max);
+        return normalizedNumbers;
     }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -173,11 +227,17 @@ public final class MathUtil {
 
     public static double evaluate(String expression, double defaultValue, Map<String, Double> variables) {
         try {
-            return new ExpressionBuilder(expression)
-                    .variables(variables.keySet())
-                    .build()
-                    .setVariables(variables)
-                    .evaluate();
+            Expression expr;
+            if (expressionCache.containsKey(expression))
+                expr = expressionCache.get(expression);
+            else {
+                expr = new ExpressionBuilder(expression)
+                        .variables(variables.keySet())
+                        .build();
+                // TODO: ensure this actually works as intended.
+                expressionCache.put(expression, expr);
+            }
+            return expr.setVariables(variables).evaluate();
         } catch (IllegalArgumentException ex) {
             ErrorUtil.warn("Couldn't evaluate expression! Reason: %s", ex.getMessage());
             return defaultValue;

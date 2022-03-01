@@ -1,8 +1,10 @@
 package dev.blufantasyonline.embercore.physics;
 
-import static dev.blufantasyonline.embercore.util.MathUtil.toSeconds;
+import dev.blufantasyonline.embercore.util.TimeUnits;
 
-public final class PhysicsUtil {
+import static dev.blufantasyonline.embercore.math.MathUtil.toSeconds;
+
+public final class Kinematics {
     public static double acceleration(double distance, double initialVelocity, long timeMs) {
         double time = toSeconds(timeMs, TimeUnits.MILLISECONDS);
         return 2.0 * ((distance / Math.pow(time, 2)) - (initialVelocity / time));

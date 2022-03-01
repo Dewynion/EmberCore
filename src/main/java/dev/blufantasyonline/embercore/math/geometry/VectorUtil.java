@@ -1,4 +1,4 @@
-package dev.blufantasyonline.embercore.geometry;
+package dev.blufantasyonline.embercore.math.geometry;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -23,7 +23,7 @@ public final class VectorUtil {
         Vector dir = source.getDirection().normalize();
         // difference between source and target locations
         Vector diff = target.toVector().subtract(source.toVector());
-        double angle = angleBetweenDegrees(dir, diff);
+        double angle = Math.toDegrees(dir.angle(diff));
 
         // Since we're only checking the angle in one direction rather than two, halve the vision radius
         if (angle <= visionRadius / 2)
@@ -34,15 +34,6 @@ public final class VectorUtil {
         else
             // false if not in vision radius
             return false;
-    }
-
-    public static double angleBetweenDegrees(Vector v1, Vector v2) {
-        // dot ∈ [-1.0, 1.0]
-        // dot = 0 means the target is at a 90 degree angle either left or right
-        // dot = 1.0 means the target is directly ahead (0 degrees)
-        // dot = -1.0 means the target is directly behind (180 degrees)
-        // after some basic algebra:
-        return (-90 * v1.dot(v2)) + 90;
     }
 
     public static Vector direction(Location from, Entity to) {
@@ -62,6 +53,6 @@ public final class VectorUtil {
     }
 
     public static Vector direction(Vector from, Vector to) {
-        return from.subtract(to).normalize();
+        return from.clone().subtract(to).normalize();
     }
 }

@@ -1,4 +1,4 @@
-package dev.blufantasyonline.embercore.physics;
+package dev.blufantasyonline.embercore.util;
 
 public enum TimeUnits {
     TICKS (1.0 / 20),
