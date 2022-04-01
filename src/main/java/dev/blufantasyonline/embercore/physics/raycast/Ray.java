@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 public final class Ray {
-    public final Location origin;
+    public final Location origin, end;
     public final Vector direction;
     public final double length;
 
@@ -12,9 +12,10 @@ public final class Ray {
         this.origin = origin;
         this.direction = direction.normalize();
         this.length = Math.abs(length);
+        this.end = origin.clone().add(this.direction.clone().multiply(length));
     }
 
     public static Ray normal(Location origin, Vector direction) {
-        return new Ray(origin, direction, 1.0);
+        return new Ray(origin, direction.normalize(), 1.0);
     }
 }

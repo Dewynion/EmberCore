@@ -3,6 +3,7 @@ package dev.blufantasyonline.embercore.physics;
 import dev.blufantasyonline.embercore.math.MathUtil;
 import dev.blufantasyonline.embercore.math.geometry.Vectors;
 import dev.blufantasyonline.embercore.physics.raycast.Intersection;
+import dev.blufantasyonline.embercore.physics.raycast.Plane;
 import dev.blufantasyonline.embercore.physics.raycast.Ray;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -18,16 +19,62 @@ import java.util.Set;
 public final class Physics {
     private static final double CHUNK_SIZE = 16.0;
 
-    public static boolean intersectsPlane(Location pointOnPlane, Vector planeNormal, Ray ray) {
+    public static Intersection<Ray, BoundingBox> intersection(Ray ray, BoundingBox box) {
+        World world = ray.origin.getWorld();
+        if (box.contains(ray.origin.toVector()) || box.contains(ray.end.toVector()))
+            return new Intersection<>(ray, box, box.getCenter().toLocation(world));
+        Vector tMin = new Vector();
+        Vector tMax = new Vector();
+        Vector s = ray.origin.toVector();
+        Vector dir = new Vector(1, 1, 1).divide(ray.direction);
+        int[] sign = new int[] { dir.getX() < 0 ? 1 : 0, dir.getY() < 0 ? 1 : 0, dir.getZ() < 0 ? 1 : 0};
+        Vector[] bounds = { box.getMin().clone(), box.getMax().clone() };
+        tMin.setX((bounds[sign[0]].getX() - s.getX()) * dir.getX());
+        tMax.setX((bounds[1 - sign[0]].getX() - s.getX()) * dir.getX());
+        tMin.setY((bounds[sign[1]].getY() - s.getY()) * dir.getY());
+        tMax.setY((bounds[1 - sign[1]].getY() - s.getY()) * dir.getY());
 
+        // ensure these contain the smallest and largest values in this interaction
+
+        if (tMin.getX() > tMax.getY() || tMin.getY() > tMax.getX())
+            return null;
+
+        if (tMin.getY() > tMin.getX())
+            tMin.setX(tMin.getY());
+
+        if (tMax.getY() < tMax.getX())
+            tMax.setX(tMax.getY());
+
+        tMin.setZ((bounds[sign[2]].getZ() - s.getZ()) * dir.getZ());
+        tMax.setZ((bounds[1 - sign[2]].getZ() - s.getZ()) * dir.getZ());
+
+        if (tMin.getX() > tMax.getZ() || tMin.getZ() > tMax.getX())
+            return null;
+
+        if (tMin.getZ() > tMin.getX())
+            tMin.setX(tMin.getZ());
+
+        if (tMax.getZ() < tMax.getX())
+            tMax.setX(tMax.getZ());
+
+        return new Intersection<>(ray, box, box.getCenter().toLocation(world));
+    }
+
+    public static boolean intersectsPlane(Location pointOnPlane, Vector planeNormal, Ray ray) {
+        return intersectsPlane(new Plane(pointOnPlane, planeNormal), ray);
     }
 
     public static boolean intersectsPlane(Ray plane, Ray ray) {
-
+        return intersectsPlane(new Plane(plane.origin, plane.direction), ray);
     }
 
-    public static Set<Intersection<Ray, LivingEntity>> raycastEntities(Ray ray) {
-        Set<Intersection<Ray, LivingEntity>> potentialTargets = new HashSet<>();
+    public static boolean intersectsPlane(Plane plane, Ray ray) {
+        // TODO finish this method
+        return false;
+    }
+
+    public static Set<LivingEntity> raycastEntities(Ray ray) {
+        Set<LivingEntity> potentialTargets = new HashSet<>();
         final Location origin = ray.origin;
         final Vector direction = ray.direction;
         final double distance = ray.length;
@@ -65,6 +112,9 @@ public final class Physics {
         }
 
         // we now have a set of all chunks the raycast could hit
+        // TODO: actually, we don't, because if a ray passes the corner or edge of another chunk, it'll do this really
+        //       funny thing where it won't bother checking the entities in that chunk. need to balance polling entities
+        //       as well since an entity with a large hitbox standing on a chunk border won't be hit
 
         for (Chunk chunk : hitChunks) {
             for (Entity e : chunk.getEntities()) {
@@ -72,14 +122,16 @@ public final class Physics {
                     continue;
                 LivingEntity entity = (LivingEntity) e;
                 BoundingBox hitbox = entity.getBoundingBox();
-
+                Intersection<Ray, BoundingBox> intersection = intersection(ray, hitbox);
+                if (intersection != null)
+                    potentialTargets.add(entity);
             }
         }
 
         return potentialTargets;
     }
 
-    public static Set<Intersection<Ray, LivingEntity>> raycastEntities(Location origin, Vector direction, double distance) {
+    public static Set<LivingEntity> raycastEntities(Location origin, Vector direction, double distance) {
         return raycastEntities(new Ray(origin, direction, distance));
     }
 }
