@@ -12,6 +12,7 @@ public final class Transform {
     private Quaternion rotation;
 
     public Transform() {
+        translation = Vectors.zero();
 
     }
 
@@ -25,6 +26,4 @@ public final class Transform {
             current = current.parent;
         return current;
     }
-
-
 }

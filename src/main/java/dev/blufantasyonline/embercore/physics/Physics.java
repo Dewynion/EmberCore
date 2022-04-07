@@ -2,6 +2,7 @@ package dev.blufantasyonline.embercore.physics;
 
 import dev.blufantasyonline.embercore.math.MathUtil;
 import dev.blufantasyonline.embercore.math.geometry.Vectors;
+import dev.blufantasyonline.embercore.physics.raycast.Geometry;
 import dev.blufantasyonline.embercore.physics.raycast.Intersection;
 import dev.blufantasyonline.embercore.physics.raycast.Plane;
 import dev.blufantasyonline.embercore.physics.raycast.Ray;
@@ -23,11 +24,63 @@ public final class Physics {
         World world = ray.origin.getWorld();
         if (box.contains(ray.origin.toVector()) || box.contains(ray.end.toVector()))
             return new Intersection<>(ray, box, box.getCenter().toLocation(world));
-        Vector tMin = new Vector();
+
+        Vector min = box.getMin();
+        Vector max = box.getMax();
+        Vector dir = ray.direction;
+
+        // whether the ray is pointing in the positive direction on all 3 axes
+        boolean[] positive = new boolean[]{
+                dir.getX() >= 0,
+                dir.getY() >= 0,
+                dir.getZ() >= 0
+        };
+
+        // we're now treating the bounding box as 6 planes
+        Vector[] near = new Vector[] {
+                positive[0] ? min : max,
+                positive[1] ? min : max,
+                positive[2] ? min : max
+        };
+
+        // but we're only concerned about the 3 planes closest to the ray origin and based on
+        Plane[] planes = new Plane[] {
+                new Plane(near[0].toLocation(world), new Vector(positive[0] ? -1 : 1, 0, 0)),
+                new Plane(near[1].toLocation(world), new Vector(0, positive[1] ? -1 : 1, 0)),
+                new Plane(near[2].toLocation(world), new Vector(0, 0, positive[2] ? -1 : 1))
+        };
+
+        Location closest = null;
+        double d2 = 0;
+        for (int i = 0; i < planes.length; i++){
+            Intersection<Ray, Geometry> intersection = planes[i].intersection(ray);
+            // if it hits the plane and the hit point is within (on) box boundaries
+            if (intersection.hit() && box.contains(intersection.getHitPoint().toVector())) {
+                if (closest == null) {
+                    closest = intersection.getHitPoint();
+                    d2 = closest.distanceSquared(ray.origin);
+                }
+                else {
+                    // update the current closest point
+                    Location hit = intersection.getHitPoint();
+                    double d2_2 = hit.distance(ray.origin);
+                    if (d2_2 < d2) {
+                        closest = hit;
+                        d2 = d2_2;
+                    }
+                }
+            }
+        }
+
+        return new Intersection<>(ray, box, closest);
+
+        // fallback code below
+
+        /*Vector tMin = new Vector();
         Vector tMax = new Vector();
         Vector s = ray.origin.toVector();
         Vector dir = new Vector(1, 1, 1).divide(ray.direction);
-        int[] sign = new int[] { dir.getX() < 0 ? 1 : 0, dir.getY() < 0 ? 1 : 0, dir.getZ() < 0 ? 1 : 0};
+
         Vector[] bounds = { box.getMin().clone(), box.getMax().clone() };
         tMin.setX((bounds[sign[0]].getX() - s.getX()) * dir.getX());
         tMax.setX((bounds[1 - sign[0]].getX() - s.getX()) * dir.getX());
@@ -37,7 +90,7 @@ public final class Physics {
         // ensure these contain the smallest and largest values in this interaction
 
         if (tMin.getX() > tMax.getY() || tMin.getY() > tMax.getX())
-            return null;
+            return new Intersection<>(ray, box, null);
 
         if (tMin.getY() > tMin.getX())
             tMin.setX(tMin.getY());
@@ -49,7 +102,7 @@ public final class Physics {
         tMax.setZ((bounds[1 - sign[2]].getZ() - s.getZ()) * dir.getZ());
 
         if (tMin.getX() > tMax.getZ() || tMin.getZ() > tMax.getX())
-            return null;
+            return new Intersection<>(ray, box, null);
 
         if (tMin.getZ() > tMin.getX())
             tMin.setX(tMin.getZ());
@@ -57,20 +110,7 @@ public final class Physics {
         if (tMax.getZ() < tMax.getX())
             tMax.setX(tMax.getZ());
 
-        return new Intersection<>(ray, box, box.getCenter().toLocation(world));
-    }
-
-    public static boolean intersectsPlane(Location pointOnPlane, Vector planeNormal, Ray ray) {
-        return intersectsPlane(new Plane(pointOnPlane, planeNormal), ray);
-    }
-
-    public static boolean intersectsPlane(Ray plane, Ray ray) {
-        return intersectsPlane(new Plane(plane.origin, plane.direction), ray);
-    }
-
-    public static boolean intersectsPlane(Plane plane, Ray ray) {
-        // TODO finish this method
-        return false;
+        return new Intersection<>(ray, box, box.getCenter().toLocation(world));*/
     }
 
     public static Set<LivingEntity> raycastEntities(Ray ray) {

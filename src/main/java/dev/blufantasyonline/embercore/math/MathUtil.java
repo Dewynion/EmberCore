@@ -198,10 +198,6 @@ public final class MathUtil {
     //  Expression-related methods, using Exp4J parsing.
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-    public static double evaluate(String expression, Object... variables) {
-        return evaluate(expression, 0.0, variables);
-    }
-
     public static double evaluate(String expression, Map<String, Double> variables) {
         return evaluate(expression, 0.0, variables);
     }

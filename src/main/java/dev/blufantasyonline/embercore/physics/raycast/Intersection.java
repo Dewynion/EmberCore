@@ -16,4 +16,8 @@ public final class Intersection<T, U> {
     public Location getHitPoint() {
         return point.clone();
     }
+
+    public boolean hit() {
+        return point != null;
+    }
 }
