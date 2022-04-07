@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -194,9 +194,9 @@ public final class ConfigInjector {
         String parentNodePath = parentConfigPath(o, parentPath);
         for (Field field : objectClass.getDeclaredFields()) {
             try {
-                field.setAccessible(true);
                 if (ignore(field))
                     continue;
+                field.setAccessible(true);
                 readFromField(pc, field, o, parentNodePath);
             } catch (IllegalAccessException ex) {
                 EmberCore.warn("Unable to access field %s in class %s while reading values into config.",
@@ -278,20 +278,20 @@ public final class ConfigInjector {
             yamlMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             yamlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
             yamlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             jsonMapper = new ObjectMapper()
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .enable(SerializationFeature.INDENT_OUTPUT);
             jsonMapper.addMixIn(Vector.class, VectorMixIn.class);
-            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            jsonMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
             jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             xmlMapper = new XmlMapper()
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             xmlMapper.addMixIn(Vector.class, VectorMixIn.class);
-            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+            xmlMapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
             xmlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         }
 

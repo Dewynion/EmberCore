@@ -4,7 +4,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public final class SequenceBuilder {

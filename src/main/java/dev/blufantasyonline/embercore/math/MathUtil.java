@@ -1,13 +1,16 @@
 package dev.blufantasyonline.embercore.math;
 
 import dev.blufantasyonline.embercore.EmberCore;
-import dev.blufantasyonline.embercore.util.TimeUnits;
 import dev.blufantasyonline.embercore.util.ErrorUtil;
+import dev.blufantasyonline.embercore.util.TimeUnits;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class MathUtil {
     /**
