@@ -15,20 +15,20 @@ import java.util.Map;
 public final class MathUtil {
     /**
      * An arbitrarily small number against which any double value subject to inaccuracy may be safely compared.
-     * Use {@link #zero(double)} or {@link Math#abs(double)} <= {@link #ARBITRARILY_SMALL_NUMBER}.
+     * Use {@link #zero(double)} or {@link Math#abs(double)} <= {@link #EPSILON}.
       */
-    public static final double ARBITRARILY_SMALL_NUMBER = 1e-6;
+    public static final double EPSILON = 1e-6;
 
     private static final HashMap<String, Expression> expressionCache = new HashMap<>();
 
     /**
-     * Compares the provided value with {@link #ARBITRARILY_SMALL_NUMBER} rather than 0.0 in order to
+     * Compares the provided value with {@link #EPSILON} rather than 0.0 in order to
      * mitigate slight inaccuracy, such as with velocities.
      * @param value The value to compare.
      * @return Whether the provided value is effectively 0.0.
      */
     public static boolean zero(double value) {
-        return Math.abs(value) <= ARBITRARILY_SMALL_NUMBER;
+        return Math.abs(value) <= EPSILON;
     }
 
     //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
