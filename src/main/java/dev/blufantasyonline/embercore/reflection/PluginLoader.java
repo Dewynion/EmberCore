@@ -316,9 +316,9 @@ public final class PluginLoader {
                 else {
                     EmberCore.logInjection("  Injecting singleton of type %s into field %s (class %s)...",
                             fieldType.getName(), field.getName(), clz.getName());
-                    EmberCore.logInjection("    ...Success!");
                     try {
                         field.set(instance, targetInstance);
+                        EmberCore.logInjection("    ...Success!");
                     } catch (IllegalAccessException e) {
                         EmberCore.warn("    Illegal access exception encountered during injection: %s", e.getMessage());
                     }
@@ -334,6 +334,7 @@ public final class PluginLoader {
             // go through the list
             for (int i = 0; i < byDependencies.size(); i++) {
                 Class<?> clz = byDependencies.get(i);
+                int selfIndex = i;
                 // for all dependencies of this element
                 for (Class<?> dep : dependencyMap.get(clz)) {
                     // ignore circular dependencies so we don't end up stuck in an infinite loop
@@ -342,12 +343,13 @@ public final class PluginLoader {
                     // grab the cached index of this dependency
                     int otherIndex = indexMap.get(dep);
                     // if it's set to load after this element,
-                    if (otherIndex > i) {
+                    if (otherIndex > selfIndex) {
                         // swap them
-                        byDependencies.set(i, dep);
+                        byDependencies.set(selfIndex, dep);
                         byDependencies.set(otherIndex, clz);
+                        selfIndex = otherIndex;
                         // and make sure to update the index cache to reflect the new indices
-                        indexMap.put(dep, i);
+                        indexMap.put(dep, selfIndex);
                         indexMap.put(clz, otherIndex);
                         sorted = false;
                     }
