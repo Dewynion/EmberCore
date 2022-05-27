@@ -1,6 +1,8 @@
-package dev.blufantasyonline.embercore.physics.raycast;
+package dev.blufantasyonline.embercore.math.geometry;
 
 import dev.blufantasyonline.embercore.math.MathUtil;
+import dev.blufantasyonline.embercore.physics.raycast.Intersection;
+import dev.blufantasyonline.embercore.physics.raycast.Ray;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 

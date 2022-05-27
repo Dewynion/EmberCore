@@ -2,9 +2,9 @@ package dev.blufantasyonline.embercore.physics;
 
 import dev.blufantasyonline.embercore.math.MathUtil;
 import dev.blufantasyonline.embercore.math.geometry.Vectors;
-import dev.blufantasyonline.embercore.physics.raycast.Geometry;
+import dev.blufantasyonline.embercore.math.geometry.Geometry;
 import dev.blufantasyonline.embercore.physics.raycast.Intersection;
-import dev.blufantasyonline.embercore.physics.raycast.Plane;
+import dev.blufantasyonline.embercore.math.geometry.Plane;
 import dev.blufantasyonline.embercore.physics.raycast.Ray;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
