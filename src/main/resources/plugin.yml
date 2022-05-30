@@ -6,3 +6,8 @@ api-version: 1.16
 load: STARTUP
 description: Multipurpose library designed to streamline plugin development and reduce boilerplate code.
 website: https://github.com/Blu-Fantasy-Online/EmberCore/
+commands:
+  embercore:
+    description: EmberCore commands.
+    aliases: [ec]
+    default: true

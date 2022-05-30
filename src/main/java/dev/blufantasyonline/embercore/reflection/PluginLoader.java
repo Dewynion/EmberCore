@@ -264,13 +264,14 @@ public final class PluginLoader {
                 ConfigInjector.injectIntoObject(plugin, obj);
             });
 
-            EmberCore.info("Assembling command tree...");
-            setupCommands(plugin);
-
             Map<Class<?>, Method> afterEnableMethods = filterMethods(onEnable, AfterEnable.class, null);
 
             EmberCore.info("Running after-enable methods...");
             runAll(plugin, afterEnableMethods);
+
+            // do this last just in case
+            EmberCore.info("Assembling command tree...");
+            setupCommands(plugin);
 
             EmberCore.info("Plugin %s loaded.", plugin.getName());
         } catch (IOException ex) {

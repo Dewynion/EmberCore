@@ -6,8 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.logging.Level;
 
 public final class EmberCore extends JavaPlugin {
-    public static final String CONFIG_KEY = "config";
-
+    /** The number of times the server ticks per second. Fixed at 20, but may support 60 FPS servers later. <i>May.</i> */
     public static int serverTickrate = 20;
 
     private Level logLevel = Level.INFO;
