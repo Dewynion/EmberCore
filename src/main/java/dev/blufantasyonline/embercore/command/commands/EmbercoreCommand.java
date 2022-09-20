@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.blufantasyonline.embercore.command.EmbercoreCommandRunner;
 import dev.blufantasyonline.embercore.config.serialization.SerializationInfo;
 import dev.blufantasyonline.embercore.reflection.annotations.OnEnable;
-import dev.blufantasyonline.embercore.util.StringUtil;
 import org.bukkit.command.CommandSender;
 
-import java.awt.*;
 import java.util.List;
 
 @OnEnable
